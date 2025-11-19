@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Seismic Base Shear Helper (ASCE 7)</title>
+  <title>Wind Load Helper – Envelope Procedure (Low-Rise)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     :root {
@@ -35,12 +35,12 @@
     }
 
     header {
-      margin-bottom: 1.5rem;
+      margin-bottom: 1.75rem;
       text-align: left;
     }
 
     header h1 {
-      margin: 0 0 0.4rem;
+      margin: 0 0 0.35rem;
       font-size: 1.9rem;
       letter-spacing: 0.03em;
     }
@@ -50,38 +50,6 @@
       color: var(--text-muted);
       max-width: 720px;
       font-size: 0.95rem;
-    }
-
-    .top-nav {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-      margin-bottom: 1.25rem;
-      padding: 0.5rem 0.75rem;
-      border-radius: 999px;
-      background: rgba(15, 23, 42, 0.03);
-      border: 1px solid rgba(148, 163, 184, 0.4);
-    }
-
-    .top-nav a {
-      font-size: 0.85rem;
-      padding: 0.35rem 0.85rem;
-      border-radius: 999px;
-      text-decoration: none;
-      color: #111827;
-      background: #ffffff;
-      border: 1px solid rgba(148, 163, 184, 0.6);
-    }
-
-    .top-nav a:hover {
-      background: #e5edff;
-      border-color: #1f6feb;
-    }
-
-    .top-nav a.current {
-      background: #1f6feb;
-      color: #ffffff;
-      border-color: #1f6feb;
     }
 
     .card {
@@ -153,7 +121,7 @@
     .inline-radio {
       display: flex;
       flex-wrap: wrap;
-      gap: 0.8rem;
+      gap: 0.75rem;
       font-size: 0.8rem;
       margin-top: 0.1rem;
       color: var(--text-muted);
@@ -164,6 +132,12 @@
       align-items: center;
       gap: 0.25rem;
       cursor: pointer;
+    }
+
+    .warning-text {
+      font-size: 0.8rem;
+      color: var(--danger);
+      margin-top: 0.25rem;
     }
 
     .button-row {
@@ -239,6 +213,39 @@
       text-align: right;
     }
 
+    /* Top navigation shared across tools */
+    .top-nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+      padding: 0.5rem 0.75rem;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.03);
+      border: 1px solid rgba(148, 163, 184, 0.4);
+    }
+
+    .top-nav a {
+      font-size: 0.85rem;
+      padding: 0.35rem 0.85rem;
+      border-radius: 999px;
+      text-decoration: none;
+      color: #111827;
+      background: #ffffff;
+      border: 1px solid rgba(148, 163, 184, 0.6);
+    }
+
+    .top-nav a:hover {
+      background: #e5edff;
+      border-color: #1f6feb;
+    }
+
+    .top-nav a.current {
+      background: #1f6feb;
+      color: #ffffff;
+      border-color: #1f6feb;
+    }
+
     @media (max-width: 640px) {
       .app { padding-inline: 0.8rem; }
       header h1 { font-size: 1.6rem; }
@@ -247,22 +254,26 @@
         flex: 1 1 auto;
         justify-content: center;
       }
+      textarea {
+        min-height: 220px;
+      }
     }
   </style>
 </head>
 <body>
   <div class="app">
+    <!-- Shared navigation between tools -->
     <nav class="top-nav">
       <a href="index.html">General Notes</a>
-      <a href="seismic.html" class="current">Seismic Helper</a>
-      <a href="wind.html">Wind Helper</a>
+      <a href="seismic.html">Seismic Helper</a>
+      <a href="wind.html" class="current">Wind Helper</a>
     </nav>
 
     <header>
-      <h1>Seismic Base Shear Helper (ASCE 7)</h1>
+      <h1>Wind Load Helper – Envelope Procedure (Low-Rise)</h1>
       <p>
-        Quick helper for Equivalent Lateral Force (ELF) calculations using ASCE 7-10/16/22-style parameters.
-        You still need to pull R, C<sub>t</sub>, x, etc. from ASCE 7 and verify everything as the Engineer of Record.
+        Helper for main wind force-resisting system (MWFRS) design of simple low-rise buildings using an
+        envelope-style approach. You still need ASCE 7 for GC<sub>p</sub>, GC<sub>pi</sub>, and applicability limits.
       </p>
     </header>
 
@@ -277,11 +288,12 @@
       <p>
         The Structural Engineering Podcast, its hosts, guests, and contributors assume no responsibility for the
         completeness, correctness, or application of any values produced here. By using this helper you agree you
-        are solely responsible for verifying all inputs, formulas, and results against ASCE 7 and local amendments.
+        are solely responsible for verifying all inputs, formulas, and results against ASCE 7, the IBC, and any
+        local amendments.
       </p>
     </section>
 
-    <!-- STEP 1: PROJECT + CODE -->
+    <!-- 1: PROJECT & CODE -->
     <section class="card">
       <h2>1. Project &amp; Code</h2>
       <p class="sub">Basic identifiers plus which ASCE 7 edition and risk category you’re using.</p>
@@ -317,130 +329,177 @@
             <option value="IV">IV</option>
           </select>
         </div>
-        <div class="field">
-          <label for="Ie">Importance factor, I<sub>e</sub></label>
-          <input id="Ie" type="number" step="0.01" placeholder="1.0, 1.25, 1.5..." />
-        </div>
       </div>
     </section>
 
-    <!-- STEP 2: HAZARD PARAMETERS -->
+    <!-- 2: APPLICABILITY & GEOMETRY -->
     <section class="card">
-      <h2>2. Hazard parameters</h2>
+      <h2>2. Applicability &amp; building geometry</h2>
       <p class="sub">
-        Enter values from your hazard report / ASCE tool. For ASCE 7-22 you can treat SDS/SD1 as the design spectral
-        accelerations S<sub>a</sub> at short period and 1-sec.
+        Envelope-style low-rise approach is typically intended for simple low-rise buildings (mean roof height ≤ 60 ft,
+        approximately rectangular plan, simple roof). Use this section to document whether your building fits.
       </p>
       <div class="grid">
         <div class="field">
-          <label for="siteClass">Seismic site class</label>
-          <select id="siteClass">
+          <label for="hMean">Mean roof height, h (ft)</label>
+          <input id="hMean" type="number" step="0.1" placeholder="e.g. 35" />
+        </div>
+        <div class="field">
+          <label for="length">Plan length, L (ft)</label>
+          <input id="length" type="number" step="0.1" placeholder="e.g. 120" />
+        </div>
+        <div class="field">
+          <label for="width">Plan width, B (ft)</label>
+          <input id="width" type="number" step="0.1" placeholder="e.g. 80" />
+        </div>
+        <div class="field">
+          <label for="roofType">Roof type</label>
+          <select id="roofType">
             <option value="">(select)</option>
-            <option value="Site Class A">Site Class A</option>
-            <option value="Site Class B">Site Class B</option>
-            <option value="Site Class BC">Site Class BC</option>
-            <option value="Site Class C">Site Class C</option>
-            <option value="Site Class CD">Site Class CD</option>
-            <option value="Site Class D">Site Class D</option>
-            <option value="Site Class DE">Site Class DE</option>
-            <option value="Site Class E">Site Class E</option>
-            <option value="Site Class F">Site Class F</option>
+            <option value="Flat">Flat</option>
+            <option value="Gable">Gable</option>
+            <option value="Hip">Hip</option>
+            <option value="Monoslope">Monoslope</option>
+            <option value="Other / special">Other / special</option>
           </select>
-          <div class="inline-radio">
-            <label><input type="radio" name="siteBasis" value="Geotechnical report" checked /> from geotechnical report</label>
-            <label><input type="radio" name="siteBasis" value="Assumed for preliminary design" /> assumed for preliminary design</label>
-          </div>
         </div>
         <div class="field">
-          <label for="Sds">SDS (short-period design accel, g)</label>
-          <input id="Sds" type="number" step="0.001" placeholder="e.g. 0.85" />
+          <label for="roofSlope">Roof slope (rise / 12 or deg)</label>
+          <input id="roofSlope" type="text" placeholder="e.g. 3:12 or 14°" />
+        </div>
+      </div>
+
+      <div class="inline-radio" style="margin-top:0.7rem;">
+        <label><input type="checkbox" id="chkLowRise" /> Mean roof height ≤ 60 ft (low-rise condition)</label>
+        <label><input type="checkbox" id="chkRectPlan" /> Approx. rectangular plan, no major re-entrant corners</label>
+        <label><input type="checkbox" id="chkSimple" /> Simple roof / no major steps or overhangs</label>
+        <label><input type="checkbox" id="chkRigidDiaphragm" /> Rigid diaphragm; regular, non-torsional layout</label>
+      </div>
+
+      <div id="heightWarning" class="warning-text"></div>
+    </section>
+
+    <!-- 3: WIND PARAMETERS -->
+    <section class="card">
+      <h2>3. Wind parameters (ASCE 7 Ch. 26)</h2>
+      <p class="sub">
+        Enter basic wind data. Use ultimate 3-sec gust speed V from the ASCE hazard tool / maps, plus exposure,
+        topographic factor K<sub>zt</sub>, directionality factor K<sub>d</sub>, and velocity-pressure coefficient K<sub>z</sub> at mean roof height.
+      </p>
+      <div class="grid">
+        <div class="field">
+          <label for="Vult">Basic wind speed, V (mph, ultimate)</label>
+          <input id="Vult" type="number" step="1" placeholder="e.g. 115" />
         </div>
         <div class="field">
-          <label for="Sd1">SD1 (1-sec design accel, g)</label>
-          <input id="Sd1" type="number" step="0.001" placeholder="e.g. 0.42" />
+          <label for="exposure">Exposure category</label>
+          <select id="exposure">
+            <option value="">(select)</option>
+            <option value="B">B</option>
+            <option value="C">C</option>
+            <option value="D">D</option>
+          </select>
         </div>
         <div class="field">
-          <label for="S1">S<sub>1</sub> (mapped 1-sec MCER, g)</label>
-          <input id="S1" type="number" step="0.001" placeholder="e.g. 0.7" />
+          <label for="Kzt">Topographic factor, K<sub>zt</sub></label>
+          <input id="Kzt" type="number" step="0.01" placeholder="1.0" />
         </div>
         <div class="field">
-          <label for="Tl">T<sub>L</sub> (long-period transition, s)</label>
-          <input id="Tl" type="number" step="0.01" placeholder="e.g. 4.0" />
+          <label for="Kd">Directionality factor, K<sub>d</sub></label>
+          <input id="Kd" type="number" step="0.01" placeholder="0.85 for buildings" />
+        </div>
+        <div class="field">
+          <label for="Kz">Velocity pressure coef. K<sub>z</sub> @ h</label>
+          <input id="Kz" type="number" step="0.01" placeholder="from ASCE 7 tables / eqn 26.10" />
+        </div>
+        <div class="field">
+          <label for="enclosure">Enclosure classification</label>
+          <select id="enclosure">
+            <option value="">(select)</option>
+            <option value="Enclosed">Enclosed</option>
+            <option value="Partially enclosed">Partially enclosed</option>
+            <option value="Open">Open</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="GCpiMag">Internal pressure coefficient |GC<sub>pi</sub>|</label>
+          <input id="GCpiMag" type="number" step="0.01" placeholder="0.18, 0.55, etc." />
         </div>
       </div>
     </section>
 
-    <!-- STEP 3: SYSTEM -->
+    <!-- 4: ENVELOPE ZONES -->
     <section class="card">
-      <h2>3. Seismic force-resisting system</h2>
+      <h2>4. Envelope zones (GC<sub>p</sub>)</h2>
       <p class="sub">
-        Describe the system and enter R, C<sub>d</sub>, and Ω<sub>0</sub> from the appropriate ASCE 7 table
-        (e.g. Table 12.2-1 / 12.2-2).
+        Enter up to four MWFRS “zones” (e.g. Wall windward, Wall leeward, Roof windward, Roof leeward) with
+        GC<sub>p</sub> values from the ASCE 7 envelope figures. The helper computes p = q<sub>h</sub>(GC<sub>p</sub> − GC<sub>pi</sub>)
+        and p = q<sub>h</sub>(GC<sub>p</sub> + GC<sub>pi</sub>) and reports an envelope net pressure.
       </p>
-      <div class="grid">
-        <div class="field">
-          <label for="systemName">System description</label>
-          <input id="systemName" type="text" placeholder="e.g. Special steel moment frame" />
-        </div>
-        <div class="field">
-          <label for="R">R (response modification factor)</label>
-          <input id="R" type="number" step="0.1" placeholder="e.g. 8" />
-        </div>
-        <div class="field">
-          <label for="Cd">C<sub>d</sub> (deflection amplification)</label>
-          <input id="Cd" type="number" step="0.1" placeholder="e.g. 5.5" />
-        </div>
-        <div class="field">
-          <label for="Omega">Ω<sub>0</sub> (overstrength factor)</label>
-          <input id="Omega" type="number" step="0.1" placeholder="e.g. 3" />
-        </div>
-      </div>
-    </section>
 
-    <!-- STEP 4: BUILDING PROPERTIES -->
-    <section class="card">
-      <h2>4. Building properties</h2>
-      <p class="sub">
-        Enter height and either the fundamental period T, or C<sub>t</sub>, x, and h<sub>n</sub> to compute an
-        approximate period. Weight W can be in kips, kN, etc. – base shear comes out in the same units.
-      </p>
       <div class="grid">
         <div class="field">
-          <label for="hn">h<sub>n</sub> (height to roof / C.G., ft)</label>
-          <input id="hn" type="number" step="0.1" placeholder="e.g. 45" />
+          <label for="z1Name">Zone 1 name</label>
+          <input id="z1Name" type="text" placeholder="Wall windward" />
         </div>
         <div class="field">
-          <label for="T">Fundamental period, T (s)</label>
-          <input id="T" type="number" step="0.01" placeholder="leave blank to compute from Cₜ, x, hₙ" />
+          <label for="z1GCp">Zone 1 GC<sub>p</sub></label>
+          <input id="z1GCp" type="number" step="0.01" placeholder="-0.8, +0.8, etc." />
         </div>
         <div class="field">
-          <label for="Ct">C<sub>t</sub> (from ASCE 7 period table)</label>
-          <input id="Ct" type="number" step="0.0001" placeholder="optional" />
+          <label for="z1Trib">Zone 1 tributary area or note</label>
+          <input id="z1Trib" type="text" placeholder="optional: use for reactions, etc." />
+        </div>
+
+        <div class="field">
+          <label for="z2Name">Zone 2 name</label>
+          <input id="z2Name" type="text" placeholder="Wall leeward" />
         </div>
         <div class="field">
-          <label for="xExp">x exponent (from ASCE 7 period table)</label>
-          <input id="xExp" type="number" step="0.01" placeholder="optional" />
+          <label for="z2GCp">Zone 2 GC<sub>p</sub></label>
+          <input id="z2GCp" type="number" step="0.01" placeholder="-0.5, etc." />
         </div>
         <div class="field">
-          <label for="W">Total seismic weight, W (kips / kN / etc.)</label>
-          <input id="W" type="number" step="0.1" placeholder="e.g. 720" />
+          <label for="z2Trib">Zone 2 tributary area or note</label>
+          <input id="z2Trib" type="text" placeholder="optional" />
+        </div>
+
+        <div class="field">
+          <label for="z3Name">Zone 3 name</label>
+          <input id="z3Name" type="text" placeholder="Roof windward" />
         </div>
         <div class="field">
-          <label for="asdFactor">ASD factor (optional, e.g. 0.7)</label>
-          <input id="asdFactor" type="number" step="0.01" placeholder="0.7" />
+          <label for="z3GCp">Zone 3 GC<sub>p</sub></label>
+          <input id="z3GCp" type="number" step="0.01" placeholder="-0.9, etc." />
+        </div>
+        <div class="field">
+          <label for="z3Trib">Zone 3 tributary area or note</label>
+          <input id="z3Trib" type="text" placeholder="optional" />
+        </div>
+
+        <div class="field">
+          <label for="z4Name">Zone 4 name</label>
+          <input id="z4Name" type="text" placeholder="Roof leeward / corner" />
+        </div>
+        <div class="field">
+          <label for="z4GCp">Zone 4 GC<sub>p</sub></label>
+          <input id="z4GCp" type="number" step="0.01" placeholder="-1.3, etc." />
+        </div>
+        <div class="field">
+          <label for="z4Trib">Zone 4 tributary area or note</label>
+          <input id="z4Trib" type="text" placeholder="optional" />
         </div>
       </div>
 
       <div class="button-row">
-        <button class="primary" type="button" id="btnCalc">📐 Compute seismic values</button>
-        <button class="secondary" type="button" id="btnCopySummary">📋 Copy calc summary</button>
-        <button class="secondary" type="button" id="btnCopyNotes">📋 Copy general notes snippet</button>
+        <button class="primary" type="button" id="btnCalc">🌬️ Compute wind pressures</button>
+        <button class="secondary" type="button" id="btnCopy">📋 Copy calc report</button>
       </div>
     </section>
 
-    <!-- OUTPUT: CALC SUMMARY -->
+    <!-- OUTPUT: CALC REPORT -->
     <section class="card">
-      <h2>5. Seismic design summary (calc output)</h2>
+      <h2>5. Wind design summary (calc report)</h2>
       <p class="sub">
         Report text suitable for pasting into a calc package. Edit as needed and verify against ASCE 7.
       </p>
@@ -450,25 +509,28 @@
 
     <!-- OUTPUT: GENERAL NOTES SNIPPET -->
     <section class="card">
-      <h2>6. Seismic general notes snippet</h2>
+      <h2>6. General notes snippet (wind criteria)</h2>
       <p class="sub">
-        Short criteria block you can paste into structural general notes and edit on a project-by-project basis.
+        Short text block for structural general notes. Copy and paste into your drawings or GSN tool and edit as required.
       </p>
-      <textarea id="seismicNotes" readonly></textarea>
+      <textarea id="notes" readonly></textarea>
+      <div class="button-row">
+        <button class="secondary" type="button" id="btnCopyNotes">📋 Copy notes snippet</button>
+      </div>
     </section>
 
     <footer>
-      Seismic Base Shear Helper – for educational use only; verify all values against ASCE 7 and local code.
+      Wind Load Helper – Envelope-style low-rise MWFRS; verify all values against ASCE 7 and local code.
     </footer>
   </div>
 
   <script>
-    function valNum(id) {
+    function num(id) {
       var v = parseFloat(document.getElementById(id).value);
       return isNaN(v) ? null : v;
     }
 
-    function valStr(id) {
+    function str(id) {
       return (document.getElementById(id).value || "").trim();
     }
 
@@ -477,325 +539,276 @@
       return x.toFixed(digits != null ? digits : 3);
     }
 
-    function getSiteBasis() {
-      var radios = document.getElementsByName("siteBasis");
-      for (var i = 0; i < radios.length; i++) {
-        if (radios[i].checked) return radios[i].value;
+    function updateHeightWarning() {
+      var h = num("hMean");
+      var el = document.getElementById("heightWarning");
+      if (h !== null && h > 60) {
+        el.textContent =
+          "Warning: mean roof height > 60 ft. Classic low-rise envelope procedures are typically limited to h ≤ 60 ft. Confirm applicability in ASCE 7.";
+      } else {
+        el.textContent = "";
       }
-      return "";
     }
 
-    // Compute all seismic values in one place so both summary + notes stay in sync
-    function computeSeismicState() {
-      var state = {};
+    function buildReport() {
+      var rep = [];
 
-      // Project + code
-      state.projName   = valStr("projName");
-      state.projNumber = valStr("projNumber");
-      state.codeYear   = valStr("codeYear");
-      state.asceEd     = valStr("asceEdition");
-      state.riskCat    = valStr("riskCat");
-      state.Ie         = valNum("Ie");
+      var projName   = str("projName");
+      var projNumber = str("projNumber");
+      var codeYear   = str("codeYear");
+      var asceEd     = str("asceEdition");
+      var riskCat    = str("riskCat");
 
-      // Hazard
-      state.siteClass  = valStr("siteClass");
-      state.siteBasis  = getSiteBasis();
-      state.Sds        = valNum("Sds");
-      state.Sd1        = valNum("Sd1");
-      state.S1         = valNum("S1");
-      state.Tl         = valNum("Tl");
+      rep.push("WIND DESIGN SUMMARY – LOW-RISE ENVELOPE-STYLE MWFRS");
+      rep.push("");
 
-      // System
-      state.systemName = valStr("systemName");
-      state.R          = valNum("R");
-      state.Cd         = valNum("Cd");
-      state.Omega      = valNum("Omega");
+      rep.push("PROJECT & CODE");
+      rep.push("--------------");
+      if (projName)   rep.push("Project: " + projName);
+      if (projNumber) rep.push("Project No.: " + projNumber);
+      if (codeYear)   rep.push("Governing building code: " + codeYear);
+      if (asceEd)     rep.push("Wind standard: " + asceEd);
+      if (riskCat)    rep.push("Risk category (for V, maps): " + riskCat);
+      rep.push("");
 
-      // Building
-      state.hn         = valNum("hn");
-      state.T_input    = valNum("T");
-      state.Ct         = valNum("Ct");
-      state.xExp       = valNum("xExp");
-      state.W          = valNum("W");
-      state.asdFactor  = valNum("asdFactor");
+      var hMean  = num("hMean");
+      var L      = num("length");
+      var B      = num("width");
+      var roofTy = str("roofType");
+      var roofSl = str("roofSlope");
 
-      // Derived period
-      var T = state.T_input;
-      state.T_source = "entered directly";
-      if (T === null && state.Ct !== null && state.xExp !== null && state.hn !== null) {
-        T = state.Ct * Math.pow(state.hn, state.xExp);
-        state.T_source = "approximate, T = Ct · h_n^x";
+      rep.push("APPLICABILITY & GEOMETRY (LOW-RISE ENVELOPE METHOD)");
+      rep.push("-----------------------------------------------");
+      rep.push("Mean roof height, h: " + (hMean !== null ? fmt(hMean, 2) + " ft" : "____ ft"));
+      rep.push("Plan dimensions (L × B): " +
+        (L !== null ? fmt(L, 1) : "____") + " ft × " +
+        (B !== null ? fmt(B, 1) : "____") + " ft");
+      rep.push("Roof type: " + (roofTy || "________"));
+      rep.push("Roof slope: " + (roofSl || "________"));
+
+      var chkLowRise        = document.getElementById("chkLowRise").checked;
+      var chkRectPlan       = document.getElementById("chkRectPlan").checked;
+      var chkSimple         = document.getElementById("chkSimple").checked;
+      var chkRigidDiaphragm = document.getElementById("chkRigidDiaphragm").checked;
+
+      rep.push("");
+      rep.push("Applicability checklist (user to verify against ASCE 7):");
+      rep.push("  - Mean roof height ≤ 60 ft (low-rise): " + (chkLowRise ? "YES" : "NO / NOT CHECKED"));
+      rep.push("  - Approx. rectangular plan, no major re-entrant corners: " + (chkRectPlan ? "YES" : "NO / NOT CHECKED"));
+      rep.push("  - Simple roof (no major steps / large overhangs / irregularities): " + (chkSimple ? "YES" : "NO / NOT CHECKED"));
+      rep.push("  - Rigid diaphragm; regular, non-torsional layout: " + (chkRigidDiaphragm ? "YES" : "NO / NOT CHECKED"));
+      rep.push("If any item is NO, confirm the appropriateness of this method before using the results.");
+      rep.push("");
+
+      // Wind parameters
+      var V       = num("Vult");
+      var exp     = str("exposure");
+      var Kzt     = num("Kzt");
+      var Kd      = num("Kd");
+      var Kz      = num("Kz");
+      var encl    = str("enclosure");
+      var GCpiMag = num("GCpiMag");
+
+      rep.push("WIND PARAMETERS (ASCE 7 CH. 26)");
+      rep.push("--------------------------------");
+      rep.push("Basic wind speed, V (ultimate, 3-sec gust): " + (V !== null ? fmt(V, 0) + " mph" : "____ mph"));
+      rep.push("Exposure category: " + (exp || "____"));
+      rep.push("Topographic factor, Kzt: " + (Kzt !== null ? fmt(Kzt, 3) : "____"));
+      rep.push("Directionality factor, Kd: " + (Kd !== null ? fmt(Kd, 3) : "____"));
+      rep.push("Velocity pressure coefficient at h, Kz: " + (Kz !== null ? fmt(Kz, 3) : "____"));
+      rep.push("Enclosure classification: " + (encl || "________"));
+      rep.push("|GCpi| (internal pressure coefficient magnitude): " +
+        (GCpiMag !== null ? fmt(GCpiMag, 3) : "____"));
+      rep.push("");
+
+      var qh = null;
+      if (V !== null && Kzt !== null && Kd !== null && Kz !== null) {
+        qh = 0.00256 * Kz * Kzt * Kd * V * V; // psf, ultimate
+        rep.push("Velocity pressure at mean roof height:");
+        rep.push("  qh = 0.00256 · Kz · Kzt · Kd · V²  (psf, using ultimate-speed maps)");
+        rep.push("  qh = 0.00256 · " + fmt(Kz,3) + " · " + fmt(Kzt,3) + " · " + fmt(Kd,3) +
+                 " · " + fmt(V,0) + "² = " + fmt(qh, 2) + " psf");
+      } else {
+        rep.push("Velocity pressure qh not computed – need V, Kz, Kzt, and Kd.");
       }
-      state.T = T;
+      rep.push("");
 
-      // Seismic coefficients
-      var IeUsed = state.Ie !== null ? state.Ie : 1.0;
+      // Zones
+      rep.push("ZONE PRESSURES (MWFRS – ENVELOPE STYLE)");
+      rep.push("---------------------------------------");
 
-      var Cs_eq2 = null;
-      if (state.Sds !== null && state.R !== null) {
-        Cs_eq2 = state.Sds * IeUsed / state.R;
-      }
+      function zoneRow(idx) {
+        var name = str("z" + idx + "Name");
+        var GCp  = num("z" + idx + "GCp");
+        var trib = str("z" + idx + "Trib");
 
-      var Cs_upper = null;
-      if (state.Sd1 !== null && state.R !== null && state.T !== null && state.Tl !== null) {
-        if (state.T <= state.Tl) {
-          Cs_upper = state.Sd1 * IeUsed / (state.T * state.R);
-        } else {
-          Cs_upper = state.Sd1 * state.Tl * IeUsed / (state.T * state.T * state.R);
+        if (!name && GCp === null && !trib) return;
+
+        rep.push("");
+        rep.push("Zone " + idx + " – " + (name || "Unnamed zone"));
+
+        rep.push("  GCp (external): " + (GCp !== null ? fmt(GCp, 3) : "____"));
+        if (trib) {
+          rep.push("  Tributary area / note: " + trib);
         }
-      }
 
-      var Cs_min_base = null;
-      if (state.Sds !== null) {
-        var c1 = 0.044 * state.Sds * IeUsed;
-        var c2 = 0.01;
-        Cs_min_base = Math.max(c1, c2);
-      }
-
-      var Cs_min_long = null;
-      if (state.S1 !== null && state.R !== null && state.S1 >= 0.6) {
-        Cs_min_long = 0.5 * state.S1 * IeUsed / state.R;
-      }
-
-      var Cs_min = null;
-      if (Cs_min_base !== null) Cs_min = Cs_min_base;
-      if (Cs_min_long !== null) Cs_min = (Cs_min === null) ? Cs_min_long : Math.max(Cs_min, Cs_min_long);
-
-      var Cs_design = Cs_eq2;
-      var Cs_governing = "SDS · Ie / R";
-
-      if (Cs_design !== null && Cs_upper !== null && Cs_design > Cs_upper) {
-        Cs_design = Cs_upper;
-        Cs_governing = "upper-bound period limit";
-      }
-
-      if (Cs_design !== null && Cs_min !== null && Cs_design < Cs_min) {
-        Cs_design = Cs_min;
-        Cs_governing = "minimum Cs requirement";
-      }
-
-      state.Cs_eq2       = Cs_eq2;
-      state.Cs_upper     = Cs_upper;
-      state.Cs_min_base  = Cs_min_base;
-      state.Cs_min_long  = Cs_min_long;
-      state.Cs_min       = Cs_min;
-      state.Cs_design    = Cs_design;
-      state.Cs_governing = Cs_governing;
-
-      // Base shear
-      state.V = null;
-      if (Cs_design !== null && state.W !== null) {
-        state.V = Cs_design * state.W;
-      }
-
-      state.V_asd = null;
-      if (state.V !== null && state.asdFactor !== null) {
-        state.V_asd = state.V * state.asdFactor;
-      }
-
-      return state;
-    }
-
-    function buildSeismicReport(state) {
-      var report = [];
-
-      report.push("SEISMIC DESIGN SUMMARY – EQUIVALENT LATERAL FORCE (ELF)");
-      report.push("");
-
-      // PROJECT & CODE
-      report.push("PROJECT & CODE");
-      report.push("--------------");
-      if (state.projName)   report.push("Project: " + state.projName);
-      if (state.projNumber) report.push("Project No.: " + state.projNumber);
-      if (state.codeYear)   report.push("Governing building code: " + state.codeYear);
-      if (state.asceEd)     report.push("Seismic standard: " + state.asceEd);
-      if (state.riskCat)    report.push("Risk category: " + state.riskCat);
-      if (state.Ie !== null) {
-        report.push("Seismic importance factor, Ie: " + fmt(state.Ie, 2));
-      } else {
-        report.push("Seismic importance factor, Ie: ______ (see ASCE 7 Chapter 11)");
-      }
-      report.push("");
-
-      // HAZARD
-      report.push("HAZARD PARAMETERS");
-      report.push("-----------------");
-      report.push("Site class: " + (state.siteClass || "________"));
-      if (state.siteBasis) report.push("Site class basis: " + state.siteBasis);
-      report.push("SDS (short-period design accel, g): " + (state.Sds !== null ? fmt(state.Sds, 3) : "____"));
-      report.push("SD1 (1-sec design accel, g): " + (state.Sd1 !== null ? fmt(state.Sd1, 3) : "____"));
-      report.push("S1 (mapped 1-sec MCER, g): " + (state.S1 !== null ? fmt(state.S1, 3) : "____"));
-      report.push("TL (long-period transition, s): " + (state.Tl !== null ? fmt(state.Tl, 3) : "____"));
-      report.push("");
-
-      // SYSTEM
-      report.push("SEISMIC FORCE-RESISTING SYSTEM");
-      report.push("------------------------------");
-      report.push("System description: " + (state.systemName || "____________________________"));
-      report.push("R (response modification factor): " + (state.R !== null ? fmt(state.R, 2) : "____"));
-      report.push("Cd (deflection amplification factor): " + (state.Cd !== null ? fmt(state.Cd, 2) : "____"));
-      report.push("Ω0 (overstrength factor): " + (state.Omega !== null ? fmt(state.Omega, 2) : "____"));
-      report.push("");
-
-      // BUILDING
-      report.push("BUILDING GEOMETRY & WEIGHT");
-      report.push("---------------------------");
-      report.push("h_n (height to roof / C.G.): " + (state.hn !== null ? fmt(state.hn, 2) + " ft" : "____ ft"));
-      if (state.Ct !== null || state.xExp !== null) {
-        report.push("Period parameters: Ct = " + (state.Ct !== null ? fmt(state.Ct, 4) : "____")
-          + ", x = " + (state.xExp !== null ? fmt(state.xExp, 2) : "____"));
-      }
-      report.push("Fundamental period T: " + (state.T !== null ? fmt(state.T, 3) + " s (" + state.T_source + ")" : "____ s"));
-      report.push("Total seismic weight W (consistent units): " + (state.W !== null ? fmt(state.W, 2) : "____"));
-      if (state.asdFactor !== null) {
-        report.push("ASD reduction factor (for optional ASD base shear): " + fmt(state.asdFactor, 2));
-      }
-      report.push("");
-
-      // SEISMIC COEFFICIENTS
-      report.push("SEISMIC COEFFICIENTS (ELF)");
-      report.push("---------------------------");
-
-      if (state.Cs_eq2 !== null) {
-        report.push("Candidate Cs from SDS and R (Eqn 12.8-2 style): Cs = SDS · Ie / R = " + fmt(state.Cs_eq2, 3));
-      } else {
-        report.push("Cs from SDS and R cannot be computed – need SDS, R, and Ie.");
-      }
-
-      if (state.Cs_upper !== null) {
-        if (state.T !== null && state.Tl !== null && state.T <= state.Tl) {
-          report.push("Upper-bound Cs for T ≤ TL (Eqn 12.8-3 style): " + fmt(state.Cs_upper, 3));
-        } else {
-          report.push("Upper-bound Cs for T > TL (Eqn 12.8-4 style): " + fmt(state.Cs_upper, 3));
+        if (qh === null || GCp === null || GCpiMag === null) {
+          rep.push("  Net pressures not computed – need qh, GCp, and |GCpi|.");
+          return;
         }
-      } else {
-        report.push("Upper-bound Cs (period-based) not evaluated – need SD1, R, Ie, T, and TL.");
+
+        var GCpi = GCpiMag;
+        // Case 1: internal pressure positive
+        var p_pos = qh * (GCp - GCpi);
+        // Case 2: internal pressure negative
+        var p_neg = qh * (GCp + GCpi);
+        var p_env = Math.abs(p_pos) >= Math.abs(p_neg) ? p_pos : p_neg;
+
+        rep.push("  Net pressure with internal pressure POSITIVE  (+GCpi):");
+        rep.push("    p(+GCpi) = qh · (GCp − |GCpi|) = " +
+          fmt(qh,2) + " · (" + fmt(GCp,3) + " − " + fmt(GCpi,3) + ") = " + fmt(p_pos,2) + " psf");
+
+        rep.push("  Net pressure with internal pressure NEGATIVE (−GCpi):");
+        rep.push("    p(−GCpi) = qh · (GCp + |GCpi|) = " +
+          fmt(qh,2) + " · (" + fmt(GCp,3) + " + " + fmt(GCpi,3) + ") = " + fmt(p_neg,2) + " psf");
+
+        rep.push("  Envelope net pressure to consider for design (max |p| of the two above):");
+        rep.push("    p_env = " + fmt(p_env,2) + " psf (sign indicates pressure/suction on the defined face)");
       }
 
-      if (state.Cs_min_base !== null) {
-        var IeUsed = state.Ie !== null ? state.Ie : 1.0;
-        var c1 = 0.044 * state.Sds * IeUsed;
-        var c2 = 0.01;
-        report.push("Minimum Cs from SDS and absolute floor (Eqn 12.8-5 style):");
-        report.push("  0.044 · SDS · Ie = " + fmt(c1, 3) + ",  absolute min = 0.01  → base min Cs = " + fmt(state.Cs_min_base, 3));
-      } else {
-        report.push("Minimum Cs from SDS not evaluated – need SDS and Ie.");
-      }
+      zoneRow(1);
+      zoneRow(2);
+      zoneRow(3);
+      zoneRow(4);
 
-      if (state.Cs_min_long !== null) {
-        report.push("Additional minimum Cs for S1 ≥ 0.6 g (Eqn 12.8-6 style): " + fmt(state.Cs_min_long, 3));
-      } else if (state.S1 !== null && state.S1 < 0.6) {
-        report.push("S1 < 0.6 g → long-period minimum Cs (Eqn 12.8-6) does not govern.");
-      } else {
-        report.push("Additional minimum Cs for S1 ≥ 0.6 g not evaluated – need S1 and R.");
-      }
+      rep.push("");
+      rep.push("NOTES & LIMITATIONS");
+      rep.push("-------------------");
+      rep.push("- This helper assumes the use of a low-rise envelope-style MWFRS procedure; confirm that the");
+      rep.push("  selected ASCE 7 edition permits this for the given building height, geometry, and SFRS.");
+      rep.push("- GCp values must be taken directly from the appropriate ASCE 7 figures for the building shape,");
+      rep.push("  roof type, zone widths, and wind direction considered.");
+      rep.push("- Internal pressure GCpi must be selected for the proper enclosure classification.");
+      rep.push("- Apply these pressures to the correct zones, line loads, and reactions per ASCE 7; this helper");
+      rep.push("  does not distribute loads or check members.");
+      rep.push("- Check minimum design pressures and any special provisions (roof overhangs, parapets, etc.).");
+      rep.push("- For buildings outside the low-rise assumptions, use the Directional Procedure or other methods");
+      rep.push("  as required by ASCE 7 and local code.");
 
-      if (state.Cs_min !== null) {
-        report.push("Overall minimum Cs used for comparison: " + fmt(state.Cs_min, 3));
-      }
-
-      report.push("");
-
-      if (state.Cs_design !== null) {
-        report.push("DESIGN Cs USED: " + fmt(state.Cs_design, 3) + "  (governing check: " + state.Cs_governing + ")");
-      } else {
-        report.push("DESIGN Cs NOT DETERMINED – missing key inputs. Check SDS, SD1, S1, R, Ie, T, TL.");
-      }
-
-      if (state.V !== null) {
-        report.push("Strength-level base shear: V = Cs · W = " +
-          fmt(state.Cs_design, 3) + " × " + fmt(state.W, 2) + " = " + fmt(state.V, 2));
-      } else {
-        report.push("Base shear V not computed – need Cs and W.");
-      }
-
-      if (state.V_asd !== null) {
-        report.push("ASD-level base shear (approx.): V_ASD = " +
-          fmt(state.asdFactor, 2) + " × V = " + fmt(state.V_asd, 2));
-      }
-
-      report.push("");
-      report.push("NOTES & CHECKS");
-      report.push("--------------");
-      report.push("- Verify Seismic Design Category (SDC) per ASCE 7 Chapter 11 using SDS, SD1, and risk category.");
-      report.push("- Confirm selected SFRS is permitted for the SDC and height per ASCE 7 system tables.");
-      report.push("- Confirm period assumptions (T) and any code limits on approximate vs. analytical periods.");
-      report.push("- Use Cd and Ω0 for drift checks, collector / overstrength design, and other detailing requirements.");
-      report.push("- Distribute base shear vertically and check diaphragms, collectors, and elements per ASCE 7 Chapter 12.");
-      report.push("- This summary is only a starting point; final design must follow the full provisions of ASCE 7 and local amendments.");
-
-      return report.join("\n");
+      return rep.join("\n");
     }
 
-    function buildSeismicNotes(state) {
+    function buildNotes() {
+      // Shorter, GSN-style text block
+      var projName   = str("projName");
+      var projNumber = str("projNumber");
+      var codeYear   = str("codeYear");
+      var asceEd     = str("asceEdition");
+      var riskCat    = str("riskCat");
+
+      var V       = num("Vult");
+      var exp     = str("exposure");
+      var Kzt     = num("Kzt");
+      var Kd      = num("Kd");
+      var encl    = str("enclosure");
+      var GCpiMag = num("GCpiMag");
+
+      var hMean   = num("hMean");
+      var roofTy  = str("roofType");
+
       var lines = [];
 
-      lines.push("SEISMIC DESIGN CRITERIA");
+      lines.push("STRUCTURAL DESIGN CRITERIA – WIND");
       lines.push("");
-      lines.push("1. Governing building code: " +
-        (state.codeYear || "________________________") + ".");
-      lines.push("2. Seismic design standard: " +
-        (state.asceEd || "ASCE 7-____") + ".");
-      lines.push("3. Risk category: " + (state.riskCat || "____") +
-        "; importance factor I_e = " + (state.Ie !== null ? fmt(state.Ie, 2) : "____") + ".");
-      lines.push("4. Site class: " + (state.siteClass || "________") +
-        (state.siteBasis ? " (basis: " + state.siteBasis + ")." : "."));
-      lines.push("5. Design spectral response accelerations (at short and 1-sec periods):");
-      lines.push("   SDS = " + (state.Sds !== null ? fmt(state.Sds, 3) : "____") +
-        " g,  SD1 = " + (state.Sd1 !== null ? fmt(state.Sd1, 3) : "____") + " g.");
-      lines.push("   Mapped 1-sec MCER acceleration: S1 = " +
-        (state.S1 !== null ? fmt(state.S1, 3) : "____") + " g.");
-      lines.push("6. Fundamental period for ELF design: T = " +
-        (state.T !== null ? fmt(state.T, 3) : "____") + " sec.");
-      lines.push("7. Seismic force-resisting system (SFRS): " +
-        (state.systemName || "________________________________") + ".");
-      lines.push("   Response modification factor R = " +
-        (state.R !== null ? fmt(state.R, 2) : "____") + ";");
-      lines.push("   deflection amplification factor C_d = " +
-        (state.Cd !== null ? fmt(state.Cd, 2) : "____") + ";");
-      lines.push("   overstrength factor Ω_0 = " +
-        (state.Omega !== null ? fmt(state.Omega, 2) : "____") + ".");
-      lines.push("8. Total effective seismic weight used for ELF base shear: W = " +
-        (state.W !== null ? fmt(state.W, 2) : "____") + " (consistent units).");
+      if (projName)   lines.push("PROJECT: " + projName);
+      if (projNumber) lines.push("PROJECT NO.: " + projNumber);
+      lines.push("");
 
-      if (state.Cs_design !== null) {
-        lines.push("9. Seismic response coefficient for ELF: C_s = " +
-          fmt(state.Cs_design, 3) + " (governed by " + state.Cs_governing + ").");
-      } else {
-        lines.push("9. Seismic response coefficient C_s to be determined per ASCE 7 Chapter 12.");
+      // Code reference
+      var codeLine = "Wind loads determined in accordance with ";
+      if (codeYear) codeLine += codeYear + " ";
+      if (asceEd)   codeLine += "(" + asceEd + ")";
+      if (!codeYear && !asceEd) codeLine += "the governing building code and applicable ASCE 7 edition";
+      codeLine += ".";
+      lines.push(codeLine);
+
+      if (riskCat) {
+        lines.push("Risk Category: " + riskCat + ".");
       }
 
-      if (state.V !== null) {
-        lines.push("10. Design base shear for ELF distribution: V = " +
-          fmt(state.V, 2) + " (same units as W).");
+      // Basic wind
+      var vText = "Basic wind speed: ";
+      if (V !== null) {
+        vText += "Vult = " + fmt(V, 0) + " mph (3-sec gust, ultimate-level wind speeds).";
       } else {
-        lines.push("10. Design base shear V to be calculated from V = C_s · W.");
+        vText += "Vult = ______ mph (3-sec gust, ultimate-level wind speeds).";
       }
+      lines.push(vText);
 
-      lines.push("11. Seismic analysis procedure: Equivalent Lateral Force (ELF) method per ASCE 7 Chapter 12.");
-      lines.push("12. Seismic Design Category (SDC) to be established from SDS, SD1, and risk category per ASCE 7 Chapter 11.");
-      lines.push("13. Detailing, collector design, diaphragms, and drift checks shall comply with the applicable");
-      lines.push("    material standards referenced by ASCE 7 and the governing building code.");
+      // Exposure
+      var expText = "Exposure Category: ";
+      if (exp) {
+        expText += "Exposure " + exp + ".";
+      } else {
+        expText += "Exposure ____.";
+      }
+      lines.push(expText);
+
+      // Enclosure / internal pressure
+      var enclText = "Enclosure Classification: ";
+      if (encl) enclText += encl + ".";
+      else enclText += "________.";
+      lines.push(enclText);
+
+      var gcpiText = "Internal pressure coefficient: GCpi = ±";
+      if (GCpiMag !== null) gcpiText += fmt(GCpiMag, 2) + ".";
+      else gcpiText += "____.";
+      lines.push(gcpiText);
+
+      // Factors
+      var kztText = "Topographic factor: Kzt = ";
+      if (Kzt !== null) kztText += fmt(Kzt, 3) + ".";
+      else kztText += "____.";
+      lines.push(kztText);
+
+      var kdText = "Directionality factor for MWFRS: Kd = ";
+      if (Kd !== null) kdText += fmt(Kd, 3) + ".";
+      else kdText += "____.";
+      lines.push(kdText);
+
+      // Low-rise / geometry note
+      var geoLine = "MWFRS wind design is based on a low-rise envelope-style procedure for a simple building";
+      var parts = [];
+      if (hMean !== null) parts.push("mean roof height h ≈ " + fmt(hMean, 1) + " ft");
+      if (roofTy) parts.push("roof type: " + roofTy.toLowerCase());
+      if (parts.length > 0) geoLine += " (" + parts.join(", ") + ")";
+      geoLine += ", subject to verification that all ASCE 7 applicability limits are satisfied.";
+      lines.push(geoLine);
+
+      lines.push("");
+      lines.push("All wind loads are ultimate-level (LRFD basis) unless noted otherwise. Allowable stress design");
+      lines.push("load combinations, where used, are derived from these ultimate-level wind effects per the governing code.");
 
       return lines.join("\n");
     }
 
-    function updateSeismicOutputs() {
-      var state = computeSeismicState();
-      var summary = buildSeismicReport(state);
-      var notes = buildSeismicNotes(state);
+    function updateOutputs() {
+      var text = buildReport();
+      document.getElementById("report").value = text;
 
-      document.getElementById("report").value = summary;
-      document.getElementById("seismicNotes").value = notes;
+      var notesText = buildNotes();
+      document.getElementById("notes").value = notesText;
 
       var status = document.getElementById("copyStatus");
       status.textContent = "";
       status.className = "copy-status";
+
+      updateHeightWarning();
     }
 
-    function copyTextarea(id) {
+    function copyTextFrom(id, statusId) {
       var el = document.getElementById(id);
-      var status = document.getElementById("copyStatus");
+      var status = document.getElementById(statusId);
       var text = el.value || "";
 
       if (!text.trim()) {
@@ -812,7 +825,7 @@
           el.select();
           document.execCommand("copy");
         }
-        status.textContent = "Copied to clipboard. Paste into your calc or notes and edit as needed.";
+        status.textContent = "Copied. Paste into your calc or notes and edit as needed.";
         status.className = "copy-status success";
       } catch (e) {
         status.textContent = "Could not copy automatically. Select the text and copy manually (Ctrl+C / Cmd+C).";
@@ -820,16 +833,17 @@
       }
     }
 
-    document.getElementById("btnCalc").addEventListener("click", updateSeismicOutputs);
-    document.getElementById("btnCopySummary").addEventListener("click", function () {
-      copyTextarea("report");
+    document.getElementById("btnCalc").addEventListener("click", updateOutputs);
+    document.getElementById("btnCopy").addEventListener("click", function () {
+      copyTextFrom("report", "copyStatus");
     });
     document.getElementById("btnCopyNotes").addEventListener("click", function () {
-      copyTextarea("seismicNotes");
+      copyTextFrom("notes", "copyStatus");
     });
+    document.getElementById("hMean").addEventListener("input", updateHeightWarning);
 
-    // initial empty report so layout isn't blank
-    updateSeismicOutputs();
+    // Initial empty outputs so layout isn't blank
+    updateOutputs();
   </script>
 </body>
 </html>
