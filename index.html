@@ -1,5 +1,41 @@
 <!DOCTYPE html>
 <html lang="en">
+  <style>
+  /* ...your existing styles... */
+
+  .top-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 999px;
+    background: rgba(15, 23, 42, 0.03);
+    border: 1px solid rgba(148, 163, 184, 0.4);
+  }
+
+  .top-nav a {
+    font-size: 0.85rem;
+    padding: 0.35rem 0.85rem;
+    border-radius: 999px;
+    text-decoration: none;
+    color: #111827;
+    background: #ffffff;
+    border: 1px solid rgba(148, 163, 184, 0.6);
+  }
+
+  .top-nav a:hover {
+    background: #e5edff;
+    border-color: #1f6feb;
+  }
+
+  .top-nav a.current {
+    background: #1f6feb;
+    color: #ffffff;
+    border-color: #1f6feb;
+  }
+</style>
+
 <head>
   <meta charset="UTF-8" />
   <title>Structural General Notes Generator</title>
