@@ -1,705 +1,356 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Structural General Notes Generator</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <style>
-    :root {
-      --bg: #f5f5f7;
-      --card-bg: #ffffff;
-      --border: #d0d0d5;
-      --accent: #1f6feb;
-      --accent-soft: rgba(31, 111, 235, 0.08);
-      --text-main: #111827;
-      --text-muted: #4b5563;
-      --danger: #b91c1c;
-      --radius-lg: 16px;
-      --radius-md: 10px;
-      --shadow-soft: 0 14px 30px rgba(15, 23, 42, 0.08);
-    }
-
-    * {
-      box-sizing: border-box;
-    }
-
-    body {
-      margin: 0;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: radial-gradient(circle at top, #e5edff 0, #f5f5f7 55%);
-      color: var(--text-main);
-    }
-
-    .app {
-      max-width: 980px;
-      margin: 0 auto;
-      padding: 2.5rem 1rem 3rem;
-    }
-
-    header {
-      margin-bottom: 1.75rem;
-      text-align: left;
-    }
-
-    header h1 {
-      margin: 0 0 0.5rem;
-      font-size: 1.9rem;
-      letter-spacing: 0.03em;
-    }
-
-    header p {
-      margin: 0;
-      color: var(--text-muted);
-      max-width: 700px;
-      font-size: 0.95rem;
-    }
-
-    .card {
-      background: var(--card-bg);
-      border-radius: var(--radius-lg);
-      box-shadow: var(--shadow-soft);
-      padding: 1.5rem 1.5rem 1.75rem;
-      margin-bottom: 1.5rem;
-      border: 1px solid rgba(148, 163, 184, 0.25);
-    }
-
-    .card h2 {
-      margin: 0 0 0.75rem;
-      font-size: 1.2rem;
-    }
-
-    .disclaimer {
-      border-left: 4px solid var(--danger);
-      background: #fef2f2;
-      color: #7f1d1d;
-      font-size: 0.9rem;
-    }
-
-    .disclaimer strong {
-      display: inline-block;
-      margin-bottom: 0.25rem;
-    }
-
-    .controls h2 {
-      display: flex;
-      align-items: center;
-      gap: 0.4rem;
-    }
-
-    .controls h2 span.tag {
-      font-size: 0.75rem;
-      background: var(--accent-soft);
-      color: var(--accent);
-      padding: 0.1rem 0.55rem;
-      border-radius: 999px;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-    }
-
-    .section-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 0.4rem 0.9rem;
-      margin: 0.75rem 0 1rem;
-    }
-
-    .checkbox-pill {
-      display: flex;
-      align-items: center;
-      gap: 0.45rem;
-      padding: 0.35rem 0.6rem;
-      border-radius: 999px;
-      background: #f9fafb;
-      border: 1px solid #e5e7eb;
-      font-size: 0.9rem;
-      cursor: pointer;
-      transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
-    }
-
-    .checkbox-pill input {
-      accent-color: var(--accent);
-      cursor: pointer;
-    }
-
-    .checkbox-pill:hover {
-      background: #f3f4ff;
-      border-color: var(--accent-soft);
-      box-shadow: 0 0 0 1px var(--accent-soft);
-    }
-
-    .inline-option {
-      display: flex;
-      align-items: center;
-      gap: 0.4rem;
-      font-size: 0.9rem;
-      color: var(--text-muted);
-      margin-top: 0.4rem;
-    }
-
-    .button-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.65rem;
-      margin-top: 0.9rem;
-    }
-
-    button {
-      border-radius: 999px;
-      border: none;
-      padding: 0.55rem 1.1rem;
-      font-size: 0.92rem;
-      font-weight: 500;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.35rem;
-      white-space: nowrap;
-    }
-
-    button.primary {
-      background: var(--accent);
-      color: white;
-      box-shadow: 0 10px 18px rgba(31, 111, 235, 0.35);
-    }
-
-    button.secondary {
-      background: #e5e7eb;
-      color: #111827;
-    }
-
-    button:active {
-      transform: translateY(1px);
-      box-shadow: none;
-    }
-
-    .output h2 {
-      margin-bottom: 0.4rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 0.6rem;
-    }
-
-    .output-subtitle {
-      font-size: 0.85rem;
-      color: var(--text-muted);
-      margin-bottom: 0.7rem;
-    }
-
-    textarea {
-      width: 100%;
-      min-height: 360px;
-      font-family: "SF Mono", ui-monospace, Menlo, Consolas, monospace;
-      font-size: 0.86rem;
-      line-height: 1.5;
-      padding: 0.9rem;
-      border-radius: var(--radius-md);
-      border: 1px solid var(--border);
-      resize: vertical;
-      background: #0f172a;
-      color: #e5e7eb;
-      box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.8);
-    }
-
-    textarea:focus {
-      outline: 2px solid var(--accent);
-      outline-offset: 2px;
-    }
-
-    .copy-status {
-      font-size: 0.8rem;
-      color: var(--text-muted);
-      margin-top: 0.35rem;
-      min-height: 1em;
-    }
-
-    .copy-status.success {
-      color: #059669;
-    }
-
-    .copy-status.error {
-      color: var(--danger);
-    }
-
-    footer {
-      margin-top: 1rem;
-      font-size: 0.8rem;
-      color: var(--text-muted);
-      text-align: right;
-    }
-
-    @media (max-width: 640px) {
-      .app {
-        padding-inline: 0.8rem;
-      }
-      header h1 {
-        font-size: 1.5rem;
-      }
-      button.primary,
-      button.secondary {
-        flex: 1 1 auto;
-        justify-content: center;
-      }
-    }
-  </style>
-</head>
-<body>
-  <div class="app">
-    <header>
-      <h1>Structural General Notes Generator</h1>
-      <p>
-        Select the structural note sections your project actually uses, then generate a text block
-        you or your engineer can review, edit, and paste into your drawings or specs.
-      </p>
-    </header>
-
-    <section class="card disclaimer">
-      <strong>Important – Read Before Use</strong>
-      <p>
-        This tool and any generated text are provided for general educational and drafting convenience only.
-        They are <u>not</u> project-specific engineering, do not create an Engineer-of-Record or client relationship,
-        and are not a substitute for design, review, or code analysis by a licensed Professional Engineer familiar
-        with the specific project, jurisdiction, and applicable codes.
-      </p>
-      <p>
-        The Structural Engineering Podcast, its hosts, guests, and contributors do not assume any responsibility or
-        liability for the selection, completeness, correctness, or application of any notes produced by this tool.
-        By using this generator, you agree that you are solely responsible for reviewing, editing, and applying
-        the content in accordance with all applicable codes, standards, and local requirements.
-      </p>
-      <p>
-        This tool is provided as a separate, stand-alone resource and is not part of any professional services
-        or project-specific deliverables associated with The Structural Engineering Podcast or its contributors.
-      </p>
-    </section>
-
-    <section class="card controls">
-      <h2>
-        Choose Sections
-        <span class="tag">Toggle materials & topics</span>
-      </h2>
-      <p class="output-subtitle">
-        Uncheck anything your project doesn’t use (for example, no masonry on a small steel-framed retrofit).
-      </p>
-
-      <div class="section-grid">
-        <label class="checkbox-pill">
-          <input type="checkbox" id="chk-general" checked>
-          <span>A. General requirements</span>
-        </label>
-        <label class="checkbox-pill">
-          <input type="checkbox" id="chk-codes" checked>
-          <span>B. Codes &amp; design criteria</span>
-        </label>
-        <label class="checkbox-pill">
-          <input type="checkbox" id="chk-qa" checked>
-          <span>C. QA / testing / special inspections</span>
-        </label>
-        <label class="checkbox-pill">
-          <input type="checkbox" id="chk-geotech" checked>
-          <span>D. Geotechnical &amp; foundations</span>
-        </label>
-        <label class="checkbox-pill">
-          <input type="checkbox" id="chk-concrete" checked>
-          <span>E. Cast-in-place concrete</span>
-        </label>
-        <label class="checkbox-pill">
-          <input type="checkbox" id="chk-masonry" checked>
-          <span>F. Structural masonry</span>
-        </label>
-        <label class="checkbox-pill">
-          <input type="checkbox" id="chk-steel" checked>
-          <span>G. Structural steel</span>
-        </label>
-        <label class="checkbox-pill">
-          <input type="checkbox" id="chk-deck-cfs" checked>
-          <span>H. Metal deck &amp; cold-formed steel</span>
-        </label>
-        <label class="checkbox-pill">
-          <input type="checkbox" id="chk-wood" checked>
-          <span>I. Wood &amp; mass timber</span>
-        </label>
-        <label class="checkbox-pill">
-          <input type="checkbox" id="chk-submittals" checked>
-          <span>J. Submittals &amp; delegated design</span>
-        </label>
-        <label class="checkbox-pill">
-          <input type="checkbox" id="chk-construction-loads" checked>
-          <span>K. Construction loads &amp; temporary conditions</span>
-        </label>
-      </div>
-
-      <label class="inline-option">
-        <input type="checkbox" id="chk-include-disclaimer" checked>
-        <span>Include a short disclaimer at the top of the generated text.</span>
-      </label>
-
-      <div class="button-row">
-        <button class="primary" id="btn-generate" type="button">
-          🔧 Generate Notes
-        </button>
-        <button class="secondary" id="btn-copy" type="button">
-          📋 Copy to clipboard
-        </button>
-      </div>
-    </section>
-
-    <section class="card output">
-      <h2>Generated Notes</h2>
-      <p class="output-subtitle">
-        This is plain text. After generating, copy it into your drafting software, Word template,
-        or CAD/BIM general-notes sheet and adapt as needed.
-      </p>
-      <textarea id="output" readonly></textarea>
-      <div class="copy-status" id="copy-status" aria-live="polite"></div>
-    </section>
-
-    <footer>
-      Structural General Notes Generator – provided as-is, with no warranty or guarantee.
-    </footer>
-  </div>
-
-  <script>
-    const disclaimerBlock = `DISCLAIMER
+<script>
+  const disclaimerBlock = `DISCLAIMER
 =========
 This generic note set is provided for educational and drafting convenience only. It is not project-specific engineering, does not create an Engineer-of-Record or client relationship, and is not a substitute for review and approval by a licensed Professional Engineer familiar with the project, codes, and jurisdiction. The Structural Engineering Podcast, its hosts, and contributors assume no responsibility for any use, modification, or omission of these notes.
 
 `;
 
-    const sections = [
-      {
-        id: "general",
-        checkboxId: "chk-general",
-        heading: "A. GENERAL REQUIREMENTS & GOVERNING DOCUMENTS",
-        body: `
-• These Structural Drawings are part of the Contract Documents and shall be used in conjunction with the Architectural, Civil, Mechanical, Electrical, Plumbing, Fire Protection, and Project Manual/Specifications. Where discrepancies exist between disciplines, notify the Structural Engineer of Record (SER) for clarification prior to proceeding with the affected work. Do not scale drawings.
+  const sections = [
+    {
+      id: "general",
+      checkboxId: "chk-general",
+      heading: "A. GENERAL REQUIREMENTS & GOVERNING DOCUMENTS",
+      body: `
+THESE STRUCTURAL DRAWINGS ARE PART OF THE CONTRACT DOCUMENTS AND SHALL BE USED IN CONJUNCTION WITH THE ARCHITECTURAL, CIVIL, MECHANICAL, ELECTRICAL, PLUMBING, FIRE PROTECTION, AND PROJECT MANUAL/SPECIFICATIONS. WHERE DISCREPANCIES EXIST BETWEEN DISCIPLINES, NOTIFY THE STRUCTURAL ENGINEER OF RECORD (SER) FOR CLARIFICATION PRIOR TO PROCEEDING WITH THE AFFECTED WORK. DO NOT SCALE DRAWINGS.
 
-• The Contractor shall verify all existing conditions, dimensions, and elevations in the field prior to fabrication or construction. Conflicting, missing, or unclear information shall be brought to the attention of the SER before work proceeds.
+THE CONTRACTOR SHALL VERIFY ALL EXISTING CONDITIONS, DIMENSIONS, AND ELEVATIONS IN THE FIELD PRIOR TO FABRICATION OR CONSTRUCTION. CONFLICTING, MISSING, OR UNCLEAR INFORMATION SHALL BE BROUGHT TO THE ATTENTION OF THE SER BEFORE WORK PROCEEDS.
 
-• These drawings depict the completed structure only. The Contractor is solely responsible for all means, methods, techniques, sequences, procedures, temporary supports, shoring, bracing, construction loads, and safety measures required to complete the Work in accordance with the Contract Documents and governing safety regulations.
+THESE DRAWINGS DEPICT THE COMPLETED STRUCTURE ONLY. THE CONTRACTOR IS SOLELY RESPONSIBLE FOR MEANS, METHODS, SEQUENCING, TEMPORARY SUPPORTS, SHORING, BRACING, CONSTRUCTION LOADS, AND SAFETY REQUIRED TO COMPLETE THE WORK.
 
-• Field modifications to structural members, connections, reinforcing, or specified details are not permitted without prior written approval from the SER. Cutting, notching, drilling, or burning of structural members shall be performed only where shown on the drawings or specifically approved in writing by the SER.
+FIELD MODIFICATIONS TO STRUCTURAL MEMBERS, CONNECTIONS, REINFORCING, OR SPECIFIED DETAILS ARE NOT PERMITTED WITHOUT PRIOR WRITTEN APPROVAL FROM THE SER.
 
-• Written approval from the Owner’s representative and SER is required for any proposed change that may affect structural performance, including substitutions, value engineering changes, or re-use of existing members beyond what is shown on the drawings.
+SHOP DRAWING, SUBMITTAL, AND RFI RESPONSES BY THE SER ARE FOR GENERAL CONFORMANCE WITH DESIGN INTENT AND DO NOT RELIEVE THE CONTRACTOR OF RESPONSIBILITY FOR COORDINATION, DIMENSIONS, OR CONSTRUCTABILITY.
 
-• Shop drawing, submittal, and RFI responses by the SER are for general conformance with design intent and are not a substitute for the Contractor’s responsibility to coordinate, verify dimensions, and ensure constructability.
+WHERE TYPICAL DETAILS AND GENERAL NOTES APPEAR ON THESE DRAWINGS, THEY APPLY TO ALL SIMILAR CONDITIONS, WHETHER OR NOT INDICATED AT EACH LOCATION, UNLESS SPECIFICALLY NOTED OTHERWISE (UNO).
 
-• Where typical details and general notes appear on these drawings, they apply to all similar conditions, whether or not indicated at each location, unless specifically noted otherwise (UNO).
+COORDINATE OPENINGS, SLEEVES, BLOCKOUTS, AND EMBEDDED ITEMS REQUIRED BY OTHER TRADES WITH STRUCTURAL FRAMING AND REINFORCING. PENETRATIONS NOT SHOWN SHALL BE LOCATED AND DETAILED IN COORDINATION WITH THE SER BEFORE INSTALLATION.
 
-• Coordinate openings, sleeves, blockouts, and embedded items required by other trades with structural framing and reinforcing shown on the drawings. Penetrations not shown shall be located and detailed in coordination with the SER before installation.
-
-• All work shall comply with applicable Federal, State, and local safety regulations (including OSHA) and the Owner’s safety policies. The Contractor is responsible for jobsite safety and for protecting adjacent structures, utilities, and the public.
+ALL WORK SHALL COMPLY WITH APPLICABLE FEDERAL, STATE, AND LOCAL SAFETY REGULATIONS (INCLUDING OSHA) AND THE OWNER’S SAFETY POLICIES. THE CONTRACTOR IS RESPONSIBLE FOR JOBSITE SAFETY AND FOR PROTECTING ADJACENT STRUCTURES, UTILITIES, AND THE PUBLIC.
 `.trim()
-      },
-      {
-        id: "codes",
-        checkboxId: "chk-codes",
-        heading: "B. CODES, STANDARDS, AND DESIGN CRITERIA",
-        body: `
-• Design Code: The structure has been designed in accordance with the adopted building code [e.g., IBC YYYY] as amended by the local jurisdiction. The Contractor shall comply with all additional applicable codes and ordinances.
+    },
+    {
+      id: "codes",
+      checkboxId: "chk-codes",
+      heading: "B. CODES, STANDARDS, AND DESIGN CRITERIA",
+      body: `
+DESIGN CODES / STANDARDS
+------------------------
 
-• Loading Standard: Gravity and lateral loads are determined in accordance with ASCE 7-[YEAR], “Minimum Design Loads and Associated Criteria for Buildings and Other Structures,” unless noted otherwise.
+BUILDING CODE: ____________________________________________
 
-• Material Standards: Structural materials and construction shall conform to the reference standards listed in these notes, including but not limited to: ACI 318 and ACI 301 (concrete); TMS 402/602 (masonry); AISC 360 and AISC 303 (structural steel); AISC 341 (seismic steel, where applicable); AISI S100 (cold-formed steel); NDS and SDPWS (wood); SDI (metal deck); and other standards cited under each material section.
+ASCE 7 EDITION: ____________________________________________
 
-• Risk Category: The building is assigned to Risk Category [I / II / III / IV] in accordance with the adopted building code and ASCE 7.
+PRIMARY STRUCTURAL STANDARDS: ACI 318/301, TMS 402/602, AISC 360/303, AISC 341 (WHERE APPLICABLE), NDS/SDPWS, SDI, AISI S100, AND OTHER STANDARDS AS INDICATED IN THE MATERIAL SECTIONS AND PROJECT SPECIFICATIONS.
 
-• Occupancy and Use: The structural design is based on the occupancies and use groups indicated on the Architectural drawings and in the Code Summary. Any change in occupancy or use that increases design loads shall be reviewed by the SER.
+RISK CATEGORY: _____________________________________________
 
-• Floor Live Loads (Unreduced): Design live loads for each occupancy and area (psf or kips as applicable) shall be indicated on the drawings in accordance with code requirements. These values shall not be reduced in the field without written approval from the SER.
+OCCUPANCY / USE (PER ARCHITECTURAL CODE SUMMARY): _________
 
-• Roof Live Load: Design roof live load LLr = [___ psf] in accordance with IBC/ASCE 7. Where a separate roof live load is not required by code, note as N/A but indicate roof maintenance/occupancy assumptions on the drawings.
 
-• Snow Loads: Ground snow load Pg = [___ psf]. Indicate flat roof snow load and related parameters on the drawings, including exposure factor Ce, thermal factor Ct, importance factor Is, and minimum uniform roof snow load, in accordance with IBC Section 1603.1 and ASCE 7.
+DESIGN LOAD PARAMETERS
+----------------------
 
-• Wind Loads: Ultimate design wind speed Vult = [___ mph]; corresponding nominal wind speed Vasd = [___ mph] if used. Exposure category = [B / C / D]; risk category = [I / II / III / IV]; internal pressure coefficient GCpi = [±___]. Indicate enclosure classification and topographic factor Kzt where required.
+GROUND SNOW LOAD, Pg = ______ PSF
 
-• Seismic Design Data: The drawings shall indicate mapped spectral accelerations SS and S1; Site Class; design spectral accelerations SDS and SD1; Seismic Design Category; selected seismic-force-resisting system(s) in each principal direction; response modification factor R; redundancy factor ρ; basic seismic response coefficient Cs and design base shear V; and the analysis procedure used (e.g., Equivalent Lateral Force, Modal Response Spectrum).
+FLAT ROOF SNOW LOAD, pf = ______ PSF
 
-• Flood Design Data: For structures in flood hazard areas, indicate flood design class, flood hazard zone, design flood elevation (DFE), and any flood-resistant construction criteria used. For sites outside mapped flood hazard areas, indicate status accordingly based on the civil/architectural code summary.
+IMPORTANCE FACTOR, Is = ______
 
-• Soils and Foundations: Indicate allowable bearing pressures, lateral earth pressures, friction coefficients, and other design soil parameters taken from the Geotechnical Report used for design, referencing report title, author, and date. Where no Geotechnical Report is provided, document the presumptive values and limitations used in design.
+ULTIMATE WIND SPEED, Vult = ______ MPH
 
-• Deflection and Drift Criteria: Structural systems and members are designed to satisfy applicable deflection and story drift limits per IBC, ASCE 7, and material standards (e.g., L/240, L/360, L/480, H/400, and project-specific criteria for finishes, cladding, or equipment as applicable).
+NOMINAL WIND SPEED, Vasd = ______ MPH
+
+WIND EXPOSURE CATEGORY: _________________________________
+
+INTERNAL PRESSURE COEFFICIENT, GCpi = ±___________________
+
+SITE CLASS: _______________________________________________
+
+SDS = ______ g
+
+SD1 = ______ g
+
+SEISMIC DESIGN CATEGORY (SDC): ____________________________
+
+ANALYSIS PROCEDURE (ELF, RSA, OTHER): ____________________
+
+
+SOILS / FOUNDATIONS
+-------------------
+
+GEOTECHNICAL REPORT: __________________________  REPORT NO.: ______  DATE: _________
+
+ALLOWABLE NET BEARING PRESSURE (TYPICAL): ______ PSF ON [UNDISTURBED NATIVE SOIL / COMPACTED STRUCTURAL FILL] UNLESS NOTED OTHERWISE.
+
+FROST DEPTH: ______ INCHES MINIMUM BELOW EXTERIOR GRADE, OR AS REQUIRED BY LOCAL CODE, WHICHEVER IS MORE STRINGENT.
+
+LATERAL EARTH PRESSURES, FRICTION COEFFICIENTS, AND OTHER SOIL PARAMETERS USED FOR DESIGN SHALL BE INDICATED ON THE DRAWINGS AND SHALL BE CONSISTENT WITH THE GEOTECHNICAL REPORT.
 `.trim()
-      },
-      {
-        id: "qa",
-        checkboxId: "chk-qa",
-        heading: "C. QUALITY ASSURANCE, TESTING, AND SPECIAL INSPECTIONS",
-        body: `
-• Special Inspections and Structural Tests shall be provided in accordance with IBC Chapter 17, the adopted building code, and the Statement of Special Inspections (SSI) prepared by the Registered Design Professional in Responsible Charge (RDPiRC) and approved by the building official.
+    },
+    {
+      id: "qa",
+      checkboxId: "chk-qa",
+      heading: "C. QUALITY ASSURANCE, TESTING, AND SPECIAL INSPECTIONS",
+      body: `
+SPECIAL INSPECTIONS AND STRUCTURAL TESTS SHALL BE PROVIDED IN ACCORDANCE WITH IBC CHAPTER 17, THE ADOPTED BUILDING CODE, AND THE STATEMENT OF SPECIAL INSPECTIONS (SSI) PREPARED BY THE REGISTERED DESIGN PROFESSIONAL IN RESPONSIBLE CHARGE (RDPIRC) AND APPROVED BY THE BUILDING OFFICIAL.
 
-• The Statement of Special Inspections and associated schedules (for steel, concrete, masonry, wood, soils, deep foundations, sprayed fire-resistive materials, fire-resistant penetrations, and other items) shall be included in the construction documents or submitted separately to the building official, as required by the jurisdiction.
+THE STATEMENT OF SPECIAL INSPECTIONS AND ANY ASSOCIATED SCHEDULES (STEEL, CONCRETE, MASONRY, WOOD, SOILS, DEEP FOUNDATIONS, SPRAYED FIRE-RESISTIVE MATERIALS, FIRE-RESISTANT PENETRATIONS, ETC.) SHALL BE INCLUDED IN THE CONSTRUCTION DOCUMENTS OR SUBMITTED SEPARATELY, AS REQUIRED BY THE JURISDICTION.
 
-• The Owner shall engage independent testing and inspection agencies, acceptable to the building official and SER, to perform the required tests and special inspections. These agencies shall not be employed by the Contractor or any subcontractor responsible for the Work being inspected.
+THE OWNER SHALL ENGAGE INDEPENDENT TESTING AND INSPECTION AGENCIES, ACCEPTABLE TO THE BUILDING OFFICIAL AND SER, TO PERFORM REQUIRED TESTS AND SPECIAL INSPECTIONS. THESE AGENCIES SHALL NOT BE EMPLOYED BY THE CONTRACTOR OR ANY SUBCONTRACTOR RESPONSIBLE FOR THE WORK BEING INSPECTED.
 
-• The Contractor shall notify the testing and inspection agencies in advance of all work requiring special inspection or testing and shall provide safe access to the work and the approved construction documents for reference.
+THE CONTRACTOR SHALL NOTIFY THE TESTING AND INSPECTION AGENCIES IN ADVANCE OF ALL WORK REQUIRING SPECIAL INSPECTION OR TESTING AND SHALL PROVIDE SAFE ACCESS TO THE WORK AND APPROVED CONSTRUCTION DOCUMENTS.
 
-• Nonconforming work or test results shall be reported by the special inspector to the Contractor and SER. Correct nonconforming work before it is concealed or before proceeding with work that depends on it. The SER shall be consulted regarding any required remedial measures.
+NONCONFORMING WORK OR TEST RESULTS SHALL BE REPORTED BY THE SPECIAL INSPECTOR TO THE CONTRACTOR AND SER. NONCONFORMING WORK SHALL BE CORRECTED PRIOR TO BEING CONCEALED OR BEFORE PROCEEDING WITH WORK THAT DEPENDS ON IT.
 
-• A Final Report of Special Inspections, sealed by the RDPiRC or as required by the building official, shall be submitted at completion of construction to document that all required inspections and tests have been performed and that nonconforming items have been resolved.
+A FINAL REPORT OF SPECIAL INSPECTIONS, SEALED AS REQUIRED BY THE BUILDING OFFICIAL, SHALL BE SUBMITTED AT COMPLETION OF CONSTRUCTION TO DOCUMENT THAT ALL REQUIRED INSPECTIONS AND TESTS HAVE BEEN PERFORMED AND THAT NONCONFORMING ITEMS HAVE BEEN RESOLVED.
 
-• Observation of construction by the SER or their representatives is for general conformance with design intent and does not constitute continuous inspection, special inspection, or supervision of the Contractor’s means and methods.
-
-• Field test and inspection reports shall be distributed to the Owner, Contractor, SER, and building official (where required) in a timely manner and maintained at the jobsite for review.
+OBSERVATION OF CONSTRUCTION BY THE SER OR THEIR REPRESENTATIVES IS FOR GENERAL CONFORMANCE WITH DESIGN INTENT AND DOES NOT CONSTITUTE CONTINUOUS INSPECTION, SPECIAL INSPECTION, OR SUPERVISION OF THE CONTRACTOR’S MEANS AND METHODS.
 `.trim()
-      },
-      {
-        id: "geotech",
-        checkboxId: "chk-geotech",
-        heading: "D. GEOTECHNICAL INFORMATION, EARTHWORK, AND FOUNDATIONS",
-        body: `
-• Foundations are designed based on the site-specific Geotechnical Report prepared by [Geotechnical Engineer], Report No. [___], dated [___]. The Contractor shall review and comply with all recommendations therein related to excavation, fill, compaction, groundwater control, and foundation construction.
+    },
+    {
+      id: "geotech",
+      checkboxId: "chk-geotech",
+      heading: "D. GEOTECHNICAL INFORMATION, EARTHWORK, AND FOUNDATIONS",
+      body: `
+FOUNDATIONS ARE DESIGNED BASED ON THE SITE-SPECIFIC GEOTECHNICAL REPORT IDENTIFIED IN SECTION B. THE CONTRACTOR SHALL REVIEW AND COMPLY WITH ALL RECOMMENDATIONS THEREIN RELATED TO EXCAVATION, FILL, COMPACTION, GROUNDWATER CONTROL, AND FOUNDATION CONSTRUCTION.
 
-• Allowable net bearing pressure for spread footings and mats: [___ psf] on [undisturbed native soil / compacted structural fill] unless noted otherwise. Do not exceed the allowable bearing pressure without written approval from the SER and Geotechnical Engineer.
+SUBGRADE PREPARATION SHALL INCLUDE STRIPPING TOPSOIL, ORGANICS, DEBRIS, LOOSE, SOFT, SATURATED, EXPANSIVE, OR OTHERWISE UNSUITABLE MATERIAL FROM ALL FOUNDATION AND SLAB SUPPORT AREAS. SUBGRADES SHALL BE PROOF-ROLLED AND ANY UNSUITABLE MATERIAL REPLACED WITH COMPACTED STRUCTURAL FILL IN ACCORDANCE WITH THE GEOTECHNICAL REPORT.
 
-• Presumptive or design lateral earth pressures (equivalent fluid weights), friction factors, and coefficients of sliding used for design of retaining structures and foundations shall be listed on the drawings (active, at-rest, passive, seismic), consistent with the Geotechnical Report.
+STRUCTURAL FILL BENEATH FOUNDATIONS AND SLABS-ON-GRADE SHALL MEET THE GRADATION, PLASTICITY, AND COMPACTION CRITERIA IN THE GEOTECHNICAL REPORT. TYPICAL COMPACTION: ≥95 PERCENT OF MODIFIED PROCTOR (ASTM D1557) FOR FOUNDATIONS AND ≥92 PERCENT FOR SLABS, UNLESS OTHERWISE RECOMMENDED.
 
-• Minimum frost depth: [___ inches] below finished exterior grade for foundations supporting heated construction, or as required by the local code, whichever is more stringent.
+PROTECT EXPOSED SUBGRADES AND EXCAVATIONS FROM DISTURBANCE DUE TO FREEZE-THAW, PRECIPITATION, AND CONSTRUCTION TRAFFIC. REMOVE STANDING WATER FROM EXCAVATIONS PRIOR TO PLACING FILL OR CONCRETE AND PROVIDE DEWATERING MEASURES AS RECOMMENDED.
 
-• Subgrade preparation: Strip topsoil, organics, debris, loose, soft, saturated, expansive, or otherwise unsuitable material from all foundation and slab support areas. Proof-roll subgrades and replace unsuitable material with compacted structural fill in accordance with the Geotechnical Report.
+FOUNDATION TYPES (SPREAD FOOTINGS, THICKENED SLABS, GRADE BEAMS, PIERS, PILES, HELICAL ANCHORS, ETC.) AND DESIGN ASSUMPTIONS SHALL BE INDICATED ON THE DRAWINGS. THE CONTRACTOR SHALL NOT CHANGE FOUNDATION TYPE OR ELEVATION WITHOUT APPROVAL FROM THE SER AND GEOTECHNICAL ENGINEER.
 
-• Structural fill beneath foundations and slabs-on-grade shall comply with the gradation, plasticity, and compaction criteria in the Geotechnical Report. Compact structural fill to the specified percentage of maximum dry density (e.g., ≥95% for foundations, ≥92% for slabs) based on Modified Proctor (ASTM D1557) or as required by the Geotechnical Engineer.
+BOTTOM OF EXTERIOR FOOTING ELEVATIONS SHALL BE AT OR BELOW THE CODE-REQUIRED FROST DEPTH UNLESS OTHERWISE JUSTIFIED BY THE GEOTECHNICAL ENGINEER AND APPROVED BY THE BUILDING OFFICIAL.
 
-• Protect exposed subgrades and excavations from disturbance due to freeze-thaw, precipitation, and construction traffic. Remove standing water from excavations prior to placing fill or concrete and provide dewatering measures as recommended by the Geotechnical Engineer.
-
-• Foundation types (spread footings, thickened slabs, grade beams, piers, piles, helical anchors, etc.) and design assumptions shall be indicated on the drawings. The Contractor shall not change foundation type or elevation without approval from the SER and Geotechnical Engineer.
-
-• Bottom of exterior footing elevations shall be at or below the code-required frost depth unless otherwise justified by the Geotechnical Engineer and approved by the building official.
-
-• Retaining walls, basement walls, and other earth-retaining structures shall be backfilled with suitable materials and drained per the Geotechnical Report and structural details. Do not place backfill against walls until concrete has achieved sufficient strength and required structural bracing is in place.
+RETAINING WALLS, BASEMENT WALLS, AND OTHER EARTH-RETAINING STRUCTURES SHALL BE BACKFILLED WITH SUITABLE MATERIALS AND DRAINED PER THE GEOTECHNICAL REPORT AND STRUCTURAL DETAILS. DO NOT PLACE BACKFILL AGAINST WALLS UNTIL CONCRETE HAS ACHIEVED SUFFICIENT STRENGTH AND REQUIRED STRUCTURAL BRACING IS IN PLACE.
 `.trim()
-      },
-      {
-        id: "concrete",
-        checkboxId: "chk-concrete",
-        heading: "E. CAST-IN-PLACE CONCRETE",
-        body: `
-• Concrete design and construction shall conform to ACI 318, “Building Code Requirements for Structural Concrete,” and ACI 301, “Specifications for Structural Concrete,” as modified by the adopted building code and these notes.
+    },
+    {
+      id: "concrete",
+      checkboxId: "chk-concrete",
+      heading: "E. CAST-IN-PLACE CONCRETE",
+      body: `
+CONCRETE DESIGN AND CONSTRUCTION SHALL CONFORM TO ACI 318 AND ACI 301, AS MODIFIED BY THE ADOPTED BUILDING CODE AND PROJECT SPECIFICATIONS.
 
-• Concrete compressive strengths at 28 days, f'c, shall be as indicated on the drawings (e.g., foundations, slabs-on-grade, elevated slabs, walls, beams, columns, toppings). Provide a concrete mix schedule identifying strength, maximum aggregate size, slump, air content, and admixtures for each mix.
+CONCRETE COMPRESSIVE STRENGTHS AT 28 DAYS, f'c, SHALL BE AS INDICATED ON THE DRAWINGS FOR FOUNDATIONS, SLABS-ON-GRADE, ELEVATED SLABS, WALLS, BEAMS, COLUMNS, AND TOPPINGS. A CONCRETE MIX SCHEDULE SHALL IDENTIFY STRENGTH, MAXIMUM AGGREGATE SIZE, SLUMP, AIR CONTENT, AND ADMIXTURES FOR EACH MIX.
 
-• Reinforcing bars shall conform to ASTM A615 Grade 60 or ASTM A706 Grade 60 where welding or ductile detailing is required. Welded wire reinforcement (WWR) shall conform to ASTM A1064. Provide reinforcement sizes and spacing as shown on the drawings.
+REINFORCING BARS SHALL CONFORM TO ASTM A615 GRADE 60 OR ASTM A706 GRADE 60 WHERE WELDING OR DUCTILE DETAILING IS REQUIRED. WELDED WIRE REINFORCEMENT (WWR) SHALL CONFORM TO ASTM A1064.
 
-• Provide minimum concrete cover to reinforcement in accordance with ACI 318 and exposure conditions (e.g., 3 in. at concrete cast against and permanently exposed to earth; 2 in. at formed surfaces exposed to earth or weather), unless a greater cover is indicated on the drawings.
+MINIMUM CONCRETE COVER TO REINFORCING SHALL CONFORM TO ACI 318 AND EXPOSURE CONDITIONS UNLESS GREATER COVER IS INDICATED ON THE DRAWINGS.
 
-• Lap splices, development lengths, and anchorage of reinforcing shall comply with ACI 318 and project-specific bar schedules. Do not splice bars at locations other than indicated without SER approval.
+LAP SPLICES, DEVELOPMENT LENGTHS, AND ANCHORAGE OF REINFORCING SHALL COMPLY WITH ACI 318 AND PROJECT BAR SCHEDULES. DO NOT RELOCATE SPLICES WITHOUT SER APPROVAL.
 
-• Concrete placement, consolidation, finishing, and curing shall follow ACI 301 and ACI 302 recommendations. Avoid re-tempering concrete with water. Coordinate finishing requirements with Architectural documents.
+CONSTRUCTION JOINTS AND CONTRACTION JOINTS IN SLABS-ON-GRADE AND ELEVATED SLABS SHALL BE LOCATED AS SHOWN ON THE DRAWINGS OR, WHERE NOT SHOWN, SUBMITTED TO THE SER FOR REVIEW PRIOR TO PLACEMENT.
 
-• Construction joints and contraction joints in slabs-on-grade and elevated slabs shall be located as shown on the drawings or, where not shown, shall be submitted to the SER for review prior to placement. Dowel and keyway details shall match the design intent.
+EMBEDMENTS, ANCHOR BOLTS, SLEEVES, AND BLOCKOUTS SHALL BE ACCURATELY LOCATED AND SECURED PRIOR TO PLACEMENT OF CONCRETE. COORDINATE EMBEDDED ITEMS REQUIRED BY OTHER TRADES.
 
-• Embedments, anchor bolts, sleeves, and blockouts shall be accurately located and secured prior to placement of concrete. Coordinate embedded items required by other trades with structural reinforcing and concrete placement sequences.
+POST-INSTALLED ANCHORS IN HARDENED CONCRETE SHALL CONFORM TO APPROVED EVALUATION REPORTS (E.G., ICC-ES), BE INSTALLED BY QUALIFIED PERSONNEL, AND BE USED ONLY WITHIN THEIR APPROVED LOAD CAPACITIES. ADHESIVE ANCHORS IN SUSTAINED-TENSION OR SEISMIC APPLICATIONS SHALL COMPLY WITH ACI 318 QUALIFICATION AND INSTALLER REQUIREMENTS WHERE APPLICABLE.
 
-• Post-installed anchors in hardened concrete shall conform to the approved evaluation reports (e.g., ICC-ES), be installed by qualified personnel, and be used only within the limits of their tested and approved load capacities. Adhesive anchors in sustained-tension or seismic applications shall comply with ACI 318 requirements for cracked concrete and qualified installers, where applicable.
-
-• Do not overload slabs, beams, or shoring with construction loads (e.g., material stockpiles, equipment) beyond the capacity of the partially completed structure. Shoring and reshoring shall be designed by the Contractor where required.
+SLABS, BEAMS, AND SHORING SHALL NOT BE OVERLOADED WITH CONSTRUCTION LOADS BEYOND THE CAPACITY OF THE PARTIALLY COMPLETED STRUCTURE. SHORING AND RESHORING SHALL BE DESIGNED BY THE CONTRACTOR AS REQUIRED BY THE CONSTRUCTION SEQUENCE.
 `.trim()
-      },
-      {
-        id: "masonry",
-        checkboxId: "chk-masonry",
-        heading: "F. STRUCTURAL MASONRY",
-        body: `
-• Structural masonry design shall conform to TMS 402, “Building Code Requirements for Masonry Structures,” and masonry construction shall conform to TMS 602, “Specification for Masonry Structures,” as adopted by the governing building code.
+    },
+    {
+      id: "masonry",
+      checkboxId: "chk-masonry",
+      heading: "F. STRUCTURAL MASONRY",
+      body: `
+STRUCTURAL MASONRY DESIGN SHALL CONFORM TO TMS 402, AND MASONRY CONSTRUCTION SHALL CONFORM TO TMS 602, AS ADOPTED BY THE GOVERNING BUILDING CODE.
 
-• Concrete masonry units (CMU) shall conform to ASTM C90 (loadbearing units) unless otherwise specified. Clay masonry units shall conform to applicable ASTM standards (e.g., ASTM C652, ASTM C216) as noted on the drawings or in the specifications.
+CONCRETE MASONRY UNITS (CMU) SHALL CONFORM TO ASTM C90 (LOADBEARING UNITS) UNLESS OTHERWISE SPECIFIED. CLAY MASONRY UNITS SHALL CONFORM TO APPLICABLE ASTM STANDARDS AS NOTED ON THE DRAWINGS OR IN THE SPECIFICATIONS.
 
-• Mortar for masonry construction shall conform to ASTM C270, of the type indicated on the drawings (e.g., Type S or N for above-grade, Type M where high-strength or severe exposure is required). Grout shall conform to ASTM C476.
+MORTAR SHALL CONFORM TO ASTM C270, OF THE TYPE INDICATED ON THE DRAWINGS (E.G., TYPE S OR N FOR ABOVE-GRADE, TYPE M WHERE HIGH-STRENGTH OR SEVERE EXPOSURE IS REQUIRED). GROUT SHALL CONFORM TO ASTM C476.
 
-• Specified masonry compressive strength, f'm, shall be as indicated on the drawings. The method used to verify f'm (unit strength method versus prism testing) shall be stated in the project documents and coordinated with the testing and inspection agency.
+SPECIFIED MASONRY COMPRESSIVE STRENGTH, f'm, SHALL BE AS INDICATED ON THE DRAWINGS. THE METHOD USED TO VERIFY f'm (UNIT STRENGTH METHOD OR PRISM TESTING) SHALL BE STATED IN THE PROJECT DOCUMENTS AND COORDINATED WITH THE TESTING AND INSPECTION AGENCY.
 
-• Reinforcing bars in masonry shall conform to ASTM A615 Grade 60 or ASTM A706 Grade 60 where required for welding or ductile detailing. Bar sizes, spacing, and lap lengths shall be as shown on the drawings and shall follow TMS 402 development and splice provisions.
+MASONRY REINFORCING BARS SHALL CONFORM TO ASTM A615 GRADE 60 OR ASTM A706 GRADE 60 WHERE REQUIRED FOR WELDING OR DUCTILE DETAILING. BAR SIZES, SPACING, AND LAP LENGTHS SHALL BE AS SHOWN ON THE DRAWINGS AND SHALL FOLLOW TMS 402 DEVELOPMENT AND SPLICE PROVISIONS.
 
-• Unless noted otherwise, provide fully grouted cells at reinforced masonry cells, jambs, piers, bond beams, and at other locations shown on the drawings. Construction of grout lifts, cleanouts, and consolidation shall comply with TMS 602 requirements.
+UNLESS NOTED OTHERWISE, PROVIDE FULLY GROUTED CELLS AT REINFORCED MASONRY CELLS, JAMBS, PIERS, BOND BEAMS, AND AT OTHER LOCATIONS SHOWN ON THE DRAWINGS. GROUT LIFT HEIGHTS, CLEANOUTS, AND CONSOLIDATION SHALL COMPLY WITH TMS 602.
 
-• Provide minimum masonry cover to reinforcing and minimum grout space dimensions compatible with the specified bar sizes and consolidation methods. Where congestion occurs, adjust bar placement only as approved by the SER.
+MASONRY QUALITY ASSURANCE, INSPECTION, AND TESTING SHALL FOLLOW THE VERIFICATION AND INSPECTION TABLES IN TMS 602 FOR THE QA LEVEL SELECTED FOR THE PROJECT. COORDINATE THESE REQUIREMENTS WITH THE STATEMENT OF SPECIAL INSPECTIONS.
 
-• Masonry quality assurance, inspection, and testing shall follow the Verification and Inspection Tables in TMS 602 for the QA level selected for the project (e.g., Level B or C). Coordinate these requirements with the Statement of Special Inspections and the testing agency.
+CONTROL JOINTS, EXPANSION JOINTS, AND MOVEMENT JOINTS IN MASONRY SHALL BE LOCATED AND DETAILED AS SHOWN ON THE DRAWINGS. PROPOSED RELOCATIONS SHALL BE SUBMITTED TO THE SER FOR REVIEW.
 
-• Control joints, expansion joints, and movement joints in masonry shall be located and detailed as shown on the drawings. Where joint locations must be adjusted to suit architectural features or field conditions, submit proposed revisions to the SER for review.
-
-• Anchorage of masonry veneers, ties to backup walls, and out-of-plane bracing of tall masonry walls shall be provided as indicated on the drawings and coordinated with architectural and structural details.
+ANCHORAGE OF MASONRY VENEERS, TIES TO BACKUP WALLS, AND OUT-OF-PLANE BRACING OF TALL MASONRY WALLS SHALL BE PROVIDED AS INDICATED ON THE DRAWINGS.
 `.trim()
-      },
-      {
-        id: "steel",
-        checkboxId: "chk-steel",
-        heading: "G. STRUCTURAL STEEL",
-        body: `
-• Structural steel design shall conform to AISC 360, “Specification for Structural Steel Buildings,” and detailing and fabrication shall conform to AISC 303, “Code of Standard Practice for Steel Buildings and Bridges.” Where applicable, seismic-force-resisting systems shall conform to AISC 341 and AISC 358.
+    },
+    {
+      id: "steel",
+      checkboxId: "chk-steel",
+      heading: "G. STRUCTURAL STEEL",
+      body: `
+STRUCTURAL STEEL DESIGN SHALL CONFORM TO AISC 360, AND DETAILING AND FABRICATION SHALL CONFORM TO AISC 303. WHERE APPLICABLE, SEISMIC-FORCE-RESISTING SYSTEMS SHALL CONFORM TO AISC 341 AND AISC 358.
 
-• Unless noted otherwise on the drawings or in the specifications, structural steel materials shall conform to the following minimum standards:
-  – Wide-flange shapes: ASTM A992
-  – Steel plates, shapes, and bars: ASTM A36 or ASTM A572 (grade as indicated)
-  – Hollow Structural Sections (HSS): ASTM A500 Grade C
-  – Steel pipe: ASTM A53 Grade B
-  – Anchor rods: ASTM F1554 Grade [36 / 55 / 105] with weldability supplement as required
+UNLESS NOTED OTHERWISE, STRUCTURAL STEEL MATERIALS SHALL CONFORM TO:
 
-• Bolts for primary structural connections shall conform to ASTM F3125 (e.g., Grades A325 or A490), with nuts conforming to ASTM A563 and washers to ASTM F436, unless noted otherwise. Use pretensioned or slip-critical joints only where indicated on the drawings or required by design.
+WIDE-FLANGE SHAPES: ASTM A992
 
-• All welding shall conform to AWS D1.1 (structural steel) and AWS D1.3 (cold-formed steel), as applicable. Use low-hydrogen electrodes with minimum tensile strength of 70 ksi (E70XX) unless otherwise stated. Welders and welding procedures shall be qualified in accordance with AWS standards.
+STEEL PLATES, SHAPES, AND BARS: ASTM A36 OR ASTM A572 (GRADE AS INDICATED)
 
-• Fabricator’s Connection Design: Unless otherwise noted on the drawings, the steel fabricator’s licensed Professional Engineer shall design and detail connections in accordance with AISC standards to support the factored loads indicated on the design reaction schedules or as otherwise noted. Connection design calculations shall be sealed and submitted with the shop drawings for SER review.
+HOLLOW STRUCTURAL SECTIONS (HSS): ASTM A500 GRADE C
 
-• Field modifications to steel members, including cutting, coping, drilling, adding holes, or attachments for other trades, shall be shown on shop drawings for SER review prior to fabrication or performed in the field only with written SER approval.
+STEEL PIPE: ASTM A53 GRADE B
 
-• Base plates and anchor rods shall be set using leveling devices, shims, or leveling nuts as indicated, with non-shrink grout placed after column plumbness is verified. Provide minimum grout thickness and bearing plate dimensions as shown on the drawings and in accordance with AISC recommendations.
+ANCHOR RODS: ASTM F1554 GRADE [36 / 55 / 105] WITH WELDABILITY SUPPLEMENT AS REQUIRED
 
-• Provide all miscellaneous steel items shown or implied on the drawings, including bearing plates, stiffeners, bracing gussets, deck support angles, lintels, embeds, edge angles, and miscellaneous connection plates. Coordinate with architectural and MEP drawings for additional steel required to support supported components.
+BOLTS FOR PRIMARY STRUCTURAL CONNECTIONS SHALL CONFORM TO ASTM F3125 (E.G., GRADES A325 OR A490), WITH NUTS CONFORMING TO ASTM A563 AND WASHERS TO ASTM F436, UNLESS NOTED OTHERWISE. PRETENSIONED OR SLIP-CRITICAL JOINTS SHALL BE USED ONLY WHERE INDICATED OR REQUIRED BY DESIGN.
 
-• Steel surfaces exposed to weather or corrosive environments shall receive galvanizing or other protective coatings as indicated on the drawings or in the specifications. Steel encased in concrete or placed below grade shall receive bituminous or other protective coatings where required.
+ALL WELDING SHALL CONFORM TO AWS D1.1 (STRUCTURAL STEEL) AND AWS D1.3 (COLD-FORMED STEEL), AS APPLICABLE. USE LOW-HYDROGEN ELECTRODES WITH MINIMUM TENSILE STRENGTH OF 70 KSI (E70XX) UNLESS OTHERWISE STATED. WELDERS AND WELDING PROCEDURES SHALL BE QUALIFIED IN ACCORDANCE WITH AWS STANDARDS.
+
+UNLESS OTHERWISE NOTED, THE STEEL FABRICATOR’S LICENSED PROFESSIONAL ENGINEER SHALL DESIGN AND DETAIL CONNECTIONS IN ACCORDANCE WITH AISC STANDARDS TO SUPPORT THE FACTORED LOADS INDICATED ON THE DESIGN REACTION SCHEDULES OR AS OTHERWISE NOTED. CONNECTION DESIGN CALCULATIONS SHALL BE SEALED AND SUBMITTED WITH THE SHOP DRAWINGS FOR SER REVIEW.
+
+FIELD MODIFICATIONS TO STEEL MEMBERS, INCLUDING CUTTING, COPING, DRILLING, ADDING HOLES, OR ATTACHMENTS FOR OTHER TRADES, SHALL BE SHOWN ON SHOP DRAWINGS FOR SER REVIEW PRIOR TO FABRICATION OR PERFORMED IN THE FIELD ONLY WITH WRITTEN SER APPROVAL.
+
+BASE PLATES AND ANCHOR RODS SHALL BE SET USING LEVELING DEVICES, SHIMS, OR LEVELING NUTS AS INDICATED, WITH NON-SHRINK GROUT PLACED AFTER COLUMN PLUMBNESS IS VERIFIED.
+
+STEEL SURFACES EXPOSED TO WEATHER OR CORROSIVE ENVIRONMENTS SHALL RECEIVE GALVANIZING OR OTHER PROTECTIVE COATINGS AS INDICATED ON THE DRAWINGS OR IN THE SPECIFICATIONS. STEEL ENCASED IN CONCRETE OR PLACED BELOW GRADE SHALL RECEIVE BITUMINOUS OR OTHER PROTECTIVE COATINGS WHERE REQUIRED.
 `.trim()
-      },
-      {
-        id: "deck-cfs",
-        checkboxId: "chk-deck-cfs",
-        heading: "H. METAL DECK AND COLD-FORMED STEEL FRAMING",
-        body: `
-• Metal roof and floor deck shall conform to the Steel Deck Institute (SDI) design manuals and the project specifications. Deck profiles, gages, and spans shall be as indicated on the drawings.
+    },
+    {
+      id: "deck-cfs",
+      checkboxId: "chk-deck-cfs",
+      heading: "H. METAL DECK AND COLD-FORMED STEEL FRAMING",
+      body: `
+METAL ROOF AND FLOOR DECK SHALL CONFORM TO STEEL DECK INSTITUTE (SDI) DESIGN MANUALS AND PROJECT SPECIFICATIONS. DECK PROFILES, GAGES, AND SPANS SHALL BE AS INDICATED ON THE DRAWINGS.
 
-• Metal deck base material shall be structural-quality sheet steel conforming to ASTM A653 with minimum G60 galvanized coating (or as specified), of the grade indicated on the drawings or in the specifications.
+METAL DECK BASE MATERIAL SHALL BE STRUCTURAL-QUALITY SHEET STEEL CONFORMING TO ASTM A653 WITH MINIMUM G60 GALVANIZED COATING (OR AS SPECIFIED), OF THE GRADE INDICATED.
 
-• Deck attachment (welds, screws, or power-actuated fasteners) shall follow the spacing and pattern indicated on the drawings and shall comply with SDI recommendations for diaphragm shear and uplift resistance. Coordinate deck attachment patterns with the roofing and flooring manufacturer requirements.
+DECK ATTACHMENT (WELDS, SCREWS, OR POWER-ACTUATED FASTENERS) SHALL FOLLOW THE SPACING AND PATTERN INDICATED ON THE DRAWINGS AND SHALL COMPLY WITH SDI RECOMMENDATIONS FOR DIAPHRAGM SHEAR AND UPLIFT RESISTANCE. COORDINATE WITH ROOFING AND FLOORING MANUFACTURER REQUIREMENTS.
 
-• Provide closures, reinforcing plates, pour stops, sump pans, and other accessories as indicated on the drawings or as required to achieve a complete deck system.
+PROVIDE CLOSURES, REINFORCING PLATES, POUR STOPS, SUMP PANS, AND OTHER ACCESSORIES AS INDICATED OR AS REQUIRED TO ACHIEVE A COMPLETE DECK SYSTEM.
 
-• Cold-formed steel framing (studs, joists, tracks, and accessories) shall conform to AISI S100 and the manufacturer’s load tables. Member sizes, gages, and spacing shall be as indicated on the drawings or by delegated design.
+COLD-FORMED STEEL FRAMING (STUDS, JOISTS, TRACKS, AND ACCESSORIES) SHALL CONFORM TO AISI S100 AND THE MANUFACTURER’S LOAD TABLES. MEMBER SIZES, GAGES, AND SPACING SHALL BE AS INDICATED ON THE DRAWINGS OR BY DELEGATED DESIGN.
 
-• Bracing and bridging for cold-formed studs and joists shall be installed in accordance with the designer’s requirements and manufacturer’s published details. Do not remove temporary bracing until permanent bracing is in place and the system is stable.
+BRACING AND BRIDGING FOR COLD-FORMED STUDS AND JOISTS SHALL BE INSTALLED IN ACCORDANCE WITH THE DESIGNER’S REQUIREMENTS AND MANUFACTURER’S PUBLISHED DETAILS. DO NOT REMOVE TEMPORARY BRACING UNTIL PERMANENT BRACING IS COMPLETE.
 
-• Delegated cold-formed steel design (e.g., curtain wall studs, trusses, cold-formed joists) shall be performed by a Professional Engineer licensed in the project state. Calculations and shop drawings shall be submitted for SER review.
+DELEGATED COLD-FORMED STEEL DESIGN (E.G., CURTAIN WALL STUDS, COLD-FORMED TRUSSES, JOISTS) SHALL BE PERFORMED BY A PROFESSIONAL ENGINEER LICENSED IN THE PROJECT STATE. CALCULATIONS AND SHOP DRAWINGS SHALL BE SUBMITTED FOR SER REVIEW.
 `.trim()
-      },
-      {
-        id: "wood",
-        checkboxId: "chk-wood",
-        heading: "I. WOOD AND MASS TIMBER FRAMING",
-        body: `
-• Wood design shall conform to the National Design Specification (NDS) for Wood Construction and applicable supplements, including SDPWS for lateral systems, as adopted by the governing building code.
+    },
+    {
+      id: "wood",
+      checkboxId: "chk-wood",
+      heading: "I. WOOD AND MASS TIMBER FRAMING",
+      body: `
+WOOD DESIGN SHALL CONFORM TO THE NATIONAL DESIGN SPECIFICATION (NDS) FOR WOOD CONSTRUCTION AND APPLICABLE SUPPLEMENTS, INCLUDING SDPWS FOR LATERAL SYSTEMS, AS ADOPTED BY THE GOVERNING BUILDING CODE.
 
-• Dimension lumber shall be visually graded or machine stress-rated (MSR) of the species and grade indicated on the drawings or in the specifications. Engineered wood products (LVL, PSL, LSL, I-joists, glulam, CLT) shall be from manufacturers whose published design values are recognized by the adopted building code.
+DIMENSION LUMBER SHALL BE VISUALLY GRADED OR MACHINE STRESS-RATED (MSR) OF THE SPECIES AND GRADE INDICATED. ENGINEERED WOOD PRODUCTS (LVL, PSL, LSL, I-JOISTS, GLULAM, CLT) SHALL BE FROM MANUFACTURERS WITH PUBLISHED DESIGN VALUES RECOGNIZED BY THE ADOPTED BUILDING CODE.
 
-• Moisture content and conditioning of framing lumber shall be suitable for the intended service conditions (e.g., kiln-dried for interior construction). Protect wood from prolonged exposure to weather and moisture prior to enclosure.
+MOISTURE CONTENT AND CONDITIONING OF FRAMING LUMBER SHALL BE SUITABLE FOR THE INTENDED SERVICE CONDITIONS. PROTECT WOOD FROM PROLONGED EXPOSURE TO WEATHER AND MOISTURE PRIOR TO ENCLOSURE.
 
-• Fasteners (nails, screws, bolts, lag screws) shall conform to ASTM F1667 and other applicable standards. Nail sizes and spacings shall be as indicated on the drawings and/or in referenced fastening schedules in accordance with NDS and SDPWS.
+FASTENERS (NAILS, SCREWS, BOLTS, LAG SCREWS) SHALL CONFORM TO ASTM F1667 AND OTHER APPLICABLE STANDARDS. NAIL SIZES AND SPACINGS SHALL BE AS INDICATED ON THE DRAWINGS AND/OR IN REFERENCED FASTENING SCHEDULES IN ACCORDANCE WITH NDS AND SDPWS.
 
-• Framing connectors (joist hangers, holdowns, post bases, straps, etc.) shall be as indicated on the drawings (e.g., by manufacturer and model number) or approved equals. Install connectors per the manufacturer’s published installation instructions, using specified fasteners.
+FRAMING CONNECTORS (JOIST HANGERS, HOLDOWNS, POST BASES, STRAPS, ETC.) SHALL BE AS INDICATED ON THE DRAWINGS OR APPROVED EQUALS. INSTALL CONNECTORS PER MANUFACTURER’S PUBLISHED INSTALLATION INSTRUCTIONS USING SPECIFIED FASTENERS.
 
-• Fasteners and connectors in preservative-treated lumber or exposed to the weather shall be hot-dip galvanized or stainless steel, as required for the treatment type and exposure conditions.
+FASTENERS AND CONNECTORS IN PRESERVATIVE-TREATED LUMBER OR EXPOSED TO WEATHER SHALL BE HOT-DIP GALVANIZED OR STAINLESS STEEL, AS REQUIRED FOR THE TREATMENT TYPE AND EXPOSURE CONDITIONS.
 
-• Built-up wood members (headers, beams, and posts) shall be nailed or bolted together in accordance with the nailing schedules on the drawings or the NDS. Provide full-depth blocking, bearing, and lateral bracing as indicated.
+BUILT-UP WOOD MEMBERS (HEADERS, BEAMS, POSTS) SHALL BE NAILED OR BOLTED TOGETHER IN ACCORDANCE WITH NDS AND PROJECT NAILING SCHEDULES. PROVIDE FULL-DEPTH BLOCKING, BEARING, AND LATERAL BRACING AS INDICATED.
 
-• Prefabricated wood trusses shall be designed, detailed, fabricated, and braced in accordance with TPI/WTCA BCSI guidelines and the design loads indicated on the structural drawings. The truss manufacturer’s engineer shall provide sealed truss calculations and placement diagrams for SER review.
+PREFABRICATED WOOD TRUSSES SHALL BE DESIGNED, DETAILED, FABRICATED, AND BRACED IN ACCORDANCE WITH TPI/WTCA BCSI GUIDELINES AND THE DESIGN LOADS INDICATED ON THE STRUCTURAL DRAWINGS. THE TRUSS MANUFACTURER’S ENGINEER SHALL PROVIDE SEALED TRUSS CALCULATIONS AND PLACEMENT DIAGRAMS FOR SER REVIEW.
 
-• Permanent and temporary bracing for trusses and tall wall panels shall be installed per the truss manufacturer’s requirements, BCSI guidelines, and the structural drawings. Do not remove temporary bracing until permanent systems are complete.
-
-• Wood shear walls and diaphragms shall be sheathed, nailed, and blocked in accordance with SDPWS and the shear wall and diaphragm schedules on the drawings. Do not change sheathing type, thickness, or nailing patterns without SER approval.
+WOOD SHEAR WALLS AND DIAPHRAGMS SHALL BE SHEATHED, NAILED, AND BLOCKED IN ACCORDANCE WITH SDPWS AND THE SHEAR WALL/DIAPHRAGM SCHEDULES ON THE DRAWINGS. DO NOT CHANGE SHEATHING TYPE, THICKNESS, OR NAILING PATTERNS WITHOUT SER APPROVAL.
 `.trim()
-      },
-      {
-        id: "submittals",
-        checkboxId: "chk-submittals",
-        heading: "J. SUBMITTALS AND DELEGATED DESIGN ITEMS",
-        body: `
-• The Contractor shall submit shop drawings, product data, and engineering calculations for structural items as required by the Contract Documents and these notes. Submittals shall be reviewed by the Contractor for completeness, coordination, and compliance prior to forwarding to the SER.
+    },
+    {
+      id: "submittals",
+      checkboxId: "chk-submittals",
+      heading: "J. SUBMITTALS AND DELEGATED DESIGN ITEMS",
+      body: `
+THE CONTRACTOR SHALL SUBMIT SHOP DRAWINGS, PRODUCT DATA, AND ENGINEERING CALCULATIONS FOR STRUCTURAL ITEMS AS REQUIRED BY THE CONTRACT DOCUMENTS AND THESE NOTES. SUBMITTALS SHALL BE REVIEWED BY THE CONTRACTOR FOR COMPLETENESS, COORDINATION, AND COMPLIANCE PRIOR TO FORWARDING TO THE SER.
 
-• Delegated design items requiring sealed calculations and drawings by a Professional Engineer licensed in the project state typically include (where applicable): structural steel connections, cold-formed steel framing systems, wood trusses, stairs and railings, pre-engineered metal buildings, proprietary anchoring systems, and other specialty structural components identified on the drawings or in the specifications.
+DELEGATED DESIGN ITEMS REQUIRING SEALED CALCULATIONS AND DRAWINGS BY A PROFESSIONAL ENGINEER LICENSED IN THE PROJECT STATE TYPICALLY INCLUDE, WHERE APPLICABLE: STRUCTURAL STEEL CONNECTIONS, COLD-FORMED STEEL FRAMING SYSTEMS, WOOD TRUSSES, STAIRS AND RAILINGS, PRE-ENGINEERED METAL BUILDINGS, PROPRIETARY ANCHORING SYSTEMS, AND OTHER SPECIALTY STRUCTURAL COMPONENTS IDENTIFIED ON THE DRAWINGS OR IN THE SPECIFICATIONS.
 
-• Submittals for concrete shall include mix designs, reinforcing shop drawings, and product data for nonshrink grout and proprietary repair materials where used.
+SUBMITTALS FOR CONCRETE SHALL INCLUDE MIX DESIGNS, REINFORCING SHOP DRAWINGS, AND PRODUCT DATA FOR NONSHRINK GROUT AND PROPRIETARY REPAIR MATERIALS WHERE USED.
 
-• Submittals for structural steel shall include member and connection shop drawings, connection design calculations where required, coating system data, and fabrication details for stairs, handrails, and miscellaneous metals that rely on structural support.
+SUBMITTALS FOR STRUCTURAL STEEL SHALL INCLUDE MEMBER AND CONNECTION SHOP DRAWINGS, CONNECTION DESIGN CALCULATIONS WHERE REQUIRED, COATING SYSTEM DATA, AND FABRICATION DETAILS FOR STAIRS, HANDRAILS, AND MISCELLANEOUS METALS THAT RELY ON STRUCTURAL SUPPORT.
 
-• Submittals for wood framing shall include engineered wood product data (LVL, PSL, I-joists, glulam, CLT), truss shop drawings and calculations, and hardware schedules for holdowns, straps, and connectors.
+SUBMITTALS FOR WOOD FRAMING SHALL INCLUDE ENGINEERED WOOD PRODUCT DATA (LVL, PSL, I-JOISTS, GLULAM, CLT), TRUSS SHOP DRAWINGS AND CALCULATIONS, AND HARDWARE SCHEDULES FOR HOLDOWNS, STRAPS, AND CONNECTORS.
 
-• Submittals for masonry shall include unit data, prism test procedures or unit strength verification, reinforcing and grout placement details, and accessories such as ties, anchors, and joint reinforcement.
+SUBMITTALS FOR MASONRY SHALL INCLUDE UNIT DATA, PRISM TEST PROCEDURES OR UNIT STRENGTH VERIFICATION, REINFORCING AND GROUT PLACEMENT DETAILS, AND ACCESSORIES SUCH AS TIES, ANCHORS, AND JOINT REINFORCEMENT.
 
-• Submittals for cold-formed steel framing shall include member and connection details, bridging and bracing layouts, and design calculations where framing is delegated.
+SUBMITTALS FOR COLD-FORMED STEEL FRAMING SHALL INCLUDE MEMBER AND CONNECTION DETAILS, BRIDGING AND BRACING LAYOUTS, AND DESIGN CALCULATIONS WHERE FRAMING IS DELEGATED.
 
-• The SER’s review of submittals is for general conformance with the design intent and does not relieve the Contractor or delegated-design Professional Engineer from responsibility for the adequacy and completeness of their design.
+THE SER’S REVIEW OF SUBMITTALS IS FOR GENERAL CONFORMANCE WITH THE DESIGN INTENT AND DOES NOT RELIEVE THE CONTRACTOR OR DELEGATED-DESIGN PROFESSIONAL ENGINEER FROM RESPONSIBILITY FOR THE ADEQUACY AND COMPLETENESS OF THEIR DESIGN.
 `.trim()
-      },
-      {
-        id: "construction-loads",
-        checkboxId: "chk-construction-loads",
-        heading: "K. CONSTRUCTION LOADS, TEMPORARY CONDITIONS, AND COORDINATION",
-        body: `
-• The structure shall not be loaded during construction in a manner that results in member forces or deflections exceeding those assumed in design. The Contractor shall provide shoring and temporary supports where required to accommodate construction loads, equipment, and material stockpiles.
+    },
+    {
+      id: "construction-loads",
+      checkboxId: "chk-construction-loads",
+      heading: "K. CONSTRUCTION LOADS, TEMPORARY CONDITIONS, AND COORDINATION",
+      body: `
+THE STRUCTURE SHALL NOT BE LOADED DURING CONSTRUCTION IN A MANNER THAT RESULTS IN MEMBER FORCES OR DEFLECTIONS EXCEEDING THOSE ASSUMED IN DESIGN. THE CONTRACTOR SHALL PROVIDE SHORING AND TEMPORARY SUPPORTS WHERE REQUIRED TO ACCOMMODATE CONSTRUCTION LOADS, EQUIPMENT, AND MATERIAL STOCKPILES.
 
-• Shoring and reshoring of concrete slabs, beams, and other elements shall be designed by the Contractor or a qualified Professional Engineer where required by the construction sequence. Do not remove shores until concrete has attained sufficient strength to support its own weight plus construction loads.
+SHORING AND RESHORING OF CONCRETE SLABS, BEAMS, AND OTHER ELEMENTS SHALL BE DESIGNED BY THE CONTRACTOR OR A QUALIFIED PROFESSIONAL ENGINEER WHERE REQUIRED BY THE CONSTRUCTION SEQUENCE. SHORES SHALL NOT BE REMOVED UNTIL CONCRETE HAS ATTAINED SUFFICIENT STRENGTH TO SUPPORT ITS OWN WEIGHT PLUS CONSTRUCTION LOADS.
 
-• Temporary bracing for frames, walls, and other framing shall be provided and maintained by the Contractor as required to ensure stability at all stages of construction, including under wind and construction loads, until the permanent lateral-force-resisting system is complete.
+TEMPORARY BRACING FOR FRAMES, WALLS, AND OTHER FRAMING SHALL BE PROVIDED AND MAINTAINED BY THE CONTRACTOR AS REQUIRED TO ENSURE STABILITY AT ALL STAGES OF CONSTRUCTION, INCLUDING UNDER WIND AND CONSTRUCTION LOADS, UNTIL THE PERMANENT LATERAL-FORCE-RESISTING SYSTEM IS COMPLETE.
 
-• Coordinate locations of expansion joints, movement joints, and slip details with architectural, mechanical, and envelope systems. Do not rigidly connect partitions, cladding, or nonstructural components where structural deflections or movements have been indicated.
+EXPANSION JOINTS, MOVEMENT JOINTS, AND SLIP DETAILS SHALL BE COORDINATED WITH ARCHITECTURAL, MECHANICAL, AND ENVELOPE SYSTEMS. NONSTRUCTURAL COMPONENTS SHALL NOT BE RIGIDLY CONNECTED WHERE STRUCTURAL DEFLECTIONS OR MOVEMENTS HAVE BEEN INDICATED.
 
-• Protect existing structures, utilities, and improvements from damage due to construction activities, dewatering, or changes in grade. Provide monitoring or pre-condition surveys where required by the Contract Documents.
+EXISTING STRUCTURES, UTILITIES, AND IMPROVEMENTS SHALL BE PROTECTED FROM DAMAGE DUE TO CONSTRUCTION ACTIVITIES, DEWATERING, OR CHANGES IN GRADE. MONITORING OR PRE-CONDITION SURVEYS SHALL BE PROVIDED WHERE REQUIRED BY THE CONTRACT DOCUMENTS.
 
-• Prior to coring, cutting, or removing portions of existing structural members or slabs, submit proposed locations and methods to the SER for review, including any required strengthening or framing modifications.
+PRIOR TO CORING, CUTTING, OR REMOVING PORTIONS OF EXISTING STRUCTURAL MEMBERS OR SLABS, PROPOSED LOCATIONS AND METHODS SHALL BE SUBMITTED TO THE SER FOR REVIEW, INCLUDING ANY REQUIRED STRENGTHENING OR FRAMING MODIFICATIONS.
 `.trim()
-      }
-    ];
+    }
+  ];
 
-    function buildNotes() {
-      const includeDisclaimer = document.getElementById("chk-include-disclaimer").checked;
-      let text = "";
+  function buildNotes() {
+    const includeDisclaimer = document.getElementById("chk-include-disclaimer").checked;
+    let text = "";
 
-      if (includeDisclaimer) {
-        text += disclaimerBlock + "\n";
-      }
-
-      sections.forEach(section => {
-        const cb = document.getElementById(section.checkboxId);
-        if (cb && cb.checked) {
-          text += section.heading + "\n";
-          text += "-".repeat(section.heading.length) + "\n\n";
-          text += section.body + "\n\n\n";
-        }
-      });
-
-      if (text.trim() === "") {
-        text = "No sections selected. Please choose at least one section above.";
-      }
-
-      const output = document.getElementById("output");
-      output.value = text;
-      document.getElementById("copy-status").textContent = "";
-      document.getElementById("copy-status").className = "copy-status";
+    if (includeDisclaimer) {
+      text += disclaimerBlock + "\n";
     }
 
-    async function copyNotes() {
-      const output = document.getElementById("output");
-      const status = document.getElementById("copy-status");
-      const text = output.value;
-
-      if (!text || !text.trim()) {
-        status.textContent = "Nothing to copy. Generate notes first.";
-        status.className = "copy-status error";
-        return;
+    sections.forEach(section => {
+      const cb = document.getElementById(section.checkboxId);
+      if (cb && cb.checked) {
+        text += section.heading + "\n";
+        text += "-".repeat(section.heading.length) + "\n\n";
+        text += section.body + "\n\n\n";
       }
+    });
 
-      try {
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-          await navigator.clipboard.writeText(text);
-        } else {
-          // fallback
-          output.focus();
-          output.select();
-          document.execCommand("copy");
-        }
-        status.textContent = "Copied to clipboard. Paste into your project file and edit as needed.";
-        status.className = "copy-status success";
-      } catch (err) {
-        status.textContent = "Could not copy automatically. Select the text above and copy it manually (Ctrl+C / Cmd+C).";
-        status.className = "copy-status error";
-      }
+    if (text.trim() === "") {
+      text = "No sections selected. Please choose at least one section above.";
     }
 
-    document.getElementById("btn-generate").addEventListener("click", buildNotes);
-    document.getElementById("btn-copy").addEventListener("click", copyNotes);
+    const output = document.getElementById("output");
+    output.value = text;
+    const status = document.getElementById("copy-status");
+    status.textContent = "";
+    status.className = "copy-status";
+  }
 
-    // Build default notes on load
-    buildNotes();
-  </script>
-</body>
-</html>
+  async function copyNotes() {
+    const output = document.getElementById("output");
+    const status = document.getElementById("copy-status");
+    const text = output.value;
+
+    if (!text || !text.trim()) {
+      status.textContent = "Nothing to copy. Generate notes first.";
+      status.className = "copy-status error";
+      return;
+    }
+
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(text);
+      } else {
+        output.focus();
+        output.select();
+        document.execCommand("copy");
+      }
+      status.textContent = "Copied to clipboard. Paste into your project file and edit as needed.";
+      status.className = "copy-status success";
+    } catch (err) {
+      status.textContent = "Could not copy automatically. Select the text above and copy it manually (Ctrl+C / Cmd+C).";
+      status.className = "copy-status error";
+    }
+  }
+
+  document.getElementById("btn-generate").addEventListener("click", buildNotes);
+  document.getElementById("btn-copy").addEventListener("click", copyNotes);
+
+  // Build default notes on load
+  buildNotes();
+</script>
