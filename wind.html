@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Wind Load Helper – Envelope Procedure (Low-Rise)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --bg: #f5f5f7;
+      --card-bg: #ffffff;
+      --border: #d0d0d5;
+      --accent: #1f6feb;
+      --accent-soft: rgba(31, 111, 235, 0.08);
+      --text-main: #111827;
+      --text-muted: #4b5563;
+      --danger: #b91c1c;
+      --radius-lg: 16px;
+      --radius-md: 10px;
+      --shadow-soft: 0 14px 30px rgba(15, 23, 42, 0.08);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #e5edff 0, #f5f5f7 55%);
+      color: var(--text-main);
+    }
+
+    .app {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 2.5rem 1rem 3rem;
+    }
+
+    header {
+      margin-bottom: 1.75rem;
+      text-align: left;
+    }
+
+    header h1 {
+      margin: 0 0 0.35rem;
+      font-size: 1.9rem;
+      letter-spacing: 0.03em;
+    }
+
+    header p {
+      margin: 0;
+      color: var(--text-muted);
+      max-width: 720px;
+      font-size: 0.95rem;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-soft);
+      padding: 1.4rem 1.5rem 1.7rem;
+      margin-bottom: 1.4rem;
+      border: 1px solid rgba(148,163,184,0.3);
+    }
+
+    .card h2 {
+      margin: 0 0 0.7rem;
+      font-size: 1.2rem;
+    }
+
+    .sub {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin: 0 0 0.6rem;
+    }
+
+    .disclaimer {
+      border-left: 4px solid var(--danger);
+      background: #fef2f2;
+      color: #7f1d1d;
+      font-size: 0.9rem;
+    }
+
+    .disclaimer strong {
+      display: inline-block;
+      margin-bottom: 0.25rem;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+      gap: 0.6rem 1rem;
+      margin-top: 0.4rem;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      font-size: 0.85rem;
+    }
+
+    .field label {
+      margin-bottom: 0.14rem;
+      color: var(--text-muted);
+    }
+
+    .field input,
+    .field select {
+      padding: 0.35rem 0.45rem;
+      border-radius: 8px;
+      border: 1px solid #d1d5db;
+      background: #f9fafb;
+      font-size: 0.85rem;
+    }
+
+    .field input:focus,
+    .field select:focus {
+      outline: 2px solid var(--accent);
+      outline-offset: 1px;
+      background: #ffffff;
+    }
+
+    .inline-radio {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      font-size: 0.8rem;
+      margin-top: 0.1rem;
+      color: var(--text-muted);
+    }
+
+    .inline-radio label {
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+      cursor: pointer;
+    }
+
+    .warning-text {
+      font-size: 0.8rem;
+      color: var(--danger);
+      margin-top: 0.25rem;
+    }
+
+    .button-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.65rem;
+      margin-top: 0.9rem;
+    }
+
+    button {
+      border-radius: 999px;
+      border: none;
+      padding: 0.55rem 1.15rem;
+      font-size: 0.92rem;
+      font-weight: 500;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      white-space: nowrap;
+    }
+
+    button.primary {
+      background: var(--accent);
+      color: #ffffff;
+      box-shadow: 0 10px 18px rgba(31,111,235,0.35);
+    }
+
+    button.secondary {
+      background: #e5e7eb;
+      color: #111827;
+    }
+
+    button:active {
+      transform: translateY(1px);
+      box-shadow: none;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 420px;
+      font-family: "SF Mono", ui-monospace, Menlo, Consolas, monospace;
+      font-size: 0.86rem;
+      line-height: 1.5;
+      padding: 0.9rem;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border);
+      background: #0f172a;
+      color: #e5e7eb;
+      box-shadow: inset 0 0 0 1px rgba(15,23,42,0.8);
+      resize: vertical;
+    }
+
+    textarea:focus {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    .copy-status {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-top: 0.35rem;
+      min-height: 1em;
+    }
+
+    .copy-status.success { color: #059669; }
+    .copy-status.error { color: var(--danger); }
+
+    footer {
+      margin-top: 1rem;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      text-align: right;
+    }
+
+    @media (max-width: 640px) {
+      .app { padding-inline: 0.8rem; }
+      header h1 { font-size: 1.6rem; }
+      button.primary,
+      button.secondary {
+        flex: 1 1 auto;
+        justify-content: center;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <h1>Wind Load Helper – Envelope Procedure (Low-Rise)</h1>
+      <p>
+        Helper for main wind force-resisting system (MWFRS) design of simple low-rise buildings using the
+        envelope-style approach. You still need ASCE 7 for GC<sub>p</sub>, GC<sub>pi</sub>, and applicability limits.
+      </p>
+    </header>
+
+    <section class="card disclaimer">
+      <strong>Important – Not a design program</strong>
+      <p>
+        This tool is for educational and drafting convenience only. It is <u>not</u> project-specific engineering,
+        does not create an Engineer-of-Record or client relationship, and is not a substitute for design, review,
+        or code compliance checks by a licensed Professional Engineer familiar with the project, jurisdiction,
+        and applicable codes.
+      </p>
+      <p>
+        The Structural Engineering Podcast, its hosts, guests, and contributors assume no responsibility for the
+        completeness, correctness, or application of any values produced here. By using this helper you agree you
+        are solely responsible for verifying all inputs, formulas, and results against ASCE 7, the IBC, and any
+        local amendments.
+      </p>
+    </section>
+
+    <!-- 1: PROJECT & CODE -->
+    <section class="card">
+      <h2>1. Project &amp; Code</h2>
+      <p class="sub">Basic identifiers plus which ASCE 7 edition and risk category you’re using.</p>
+      <div class="grid">
+        <div class="field">
+          <label for="projName">Project name</label>
+          <input id="projName" type="text" placeholder="Tomlinson House" />
+        </div>
+        <div class="field">
+          <label for="projNumber">Project number</label>
+          <input id="projNumber" type="text" placeholder="P-2025-001" />
+        </div>
+        <div class="field">
+          <label for="codeYear">Building code</label>
+          <input id="codeYear" type="text" placeholder="IBC 2018, local amendments" />
+        </div>
+        <div class="field">
+          <label for="asceEdition">ASCE 7 edition</label>
+          <select id="asceEdition">
+            <option value="">(select)</option>
+            <option value="ASCE 7-10">ASCE 7-10</option>
+            <option value="ASCE 7-16">ASCE 7-16</option>
+            <option value="ASCE 7-22">ASCE 7-22</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="riskCat">Risk category</label>
+          <select id="riskCat">
+            <option value="">(select)</option>
+            <option value="I">I</option>
+            <option value="II">II</option>
+            <option value="III">III</option>
+            <option value="IV">IV</option>
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2: APPLICABILITY & GEOMETRY -->
+    <section class="card">
+      <h2>2. Applicability &amp; building geometry</h2>
+      <p class="sub">
+        Envelope-style low-rise method is intended for simple, low-rise buildings (mean roof height typically ≤ 60 ft,
+        approximately rectangular plan, simple roof). Use this section to document whether your building fits.
+      </p>
+      <div class="grid">
+        <div class="field">
+          <label for="hMean">Mean roof height, h (ft)</label>
+          <input id="hMean" type="number" step="0.1" placeholder="e.g. 35" />
+        </div>
+        <div class="field">
+          <label for="length">Plan length, L (ft)</label>
+          <input id="length" type="number" step="0.1" placeholder="e.g. 120" />
+        </div>
+        <div class="field">
+          <label for="width">Plan width, B (ft)</label>
+          <input id="width" type="number" step="0.1" placeholder="e.g. 80" />
+        </div>
+        <div class="field">
+          <label for="roofType">Roof type</label>
+          <select id="roofType">
+            <option value="">(select)</option>
+            <option value="Flat">Flat</option>
+            <option value="Gable">Gable</option>
+            <option value="Hip">Hip</option>
+            <option value="Monoslope">Monoslope</option>
+            <option value="Other / special">Other / special</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="roofSlope">Roof slope (rise / 12 or deg)</label>
+          <input id="roofSlope" type="text" placeholder="e.g. 3:12 or 14°" />
+        </div>
+      </div>
+
+      <div class="inline-radio" style="margin-top:0.7rem;">
+        <label><input type="checkbox" id="chkLowRise" /> Mean roof height ≤ 60 ft (low-rise condition)</label>
+        <label><input type="checkbox" id="chkRectPlan" /> Approx. rectangular plan, no major re-entrant corners</label>
+        <label><input type="checkbox" id="chkSimple" /> Simple roof / no major steps or overhangs</label>
+        <label><input type="checkbox" id="chkRigidDiaphragm" /> Rigid diaphragm; regular, non-torsional layout</label>
+      </div>
+
+      <div id="heightWarning" class="warning-text"></div>
+    </section>
+
+    <!-- 3: WIND PARAMETERS -->
+    <section class="card">
+      <h2>3. Wind parameters (ASCE 7 Ch. 26)</h2>
+      <p class="sub">
+        Enter basic wind data. Use ultimate 3-sec gust speed V from the ASCE hazard tool / maps, plus exposure,
+        topographic factor K<sub>zt</sub>, directionality factor K<sub>d</sub>, and velocity-pressure coefficient K<sub>z</sub> at mean roof height.
+      </p>
+      <div class="grid">
+        <div class="field">
+          <label for="Vult">Basic wind speed, V (mph, ultimate)</label>
+          <input id="Vult" type="number" step="1" placeholder="e.g. 115" />
+        </div>
+        <div class="field">
+          <label for="exposure">Exposure category</label>
+          <select id="exposure">
+            <option value="">(select)</option>
+            <option value="B">B</option>
+            <option value="C">C</option>
+            <option value="D">D</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="Kzt">Topographic factor, K<sub>zt</sub></label>
+          <input id="Kzt" type="number" step="0.01" placeholder="1.0" />
+        </div>
+        <div class="field">
+          <label for="Kd">Directionality factor, K<sub>d</sub></label>
+          <input id="Kd" type="number" step="0.01" placeholder="0.85 for buildings" />
+        </div>
+        <div class="field">
+          <label for="Kz">Velocity pressure coef. K<sub>z</sub> @ h</label>
+          <input id="Kz" type="number" step="0.01" placeholder="from ASCE 7 tables / eqn 26.10" />
+        </div>
+        <div class="field">
+          <label for="enclosure">Enclosure classification</label>
+          <select id="enclosure">
+            <option value="">(select)</option>
+            <option value="Enclosed">Enclosed</option>
+            <option value="Partially enclosed">Partially enclosed</option>
+            <option value="Open">Open</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="GCpiMag">Internal pressure coefficient |GC<sub>pi</sub>|</label>
+          <input id="GCpiMag" type="number" step="0.01" placeholder="0.18, 0.55, etc." />
+        </div>
+      </div>
+    </section>
+
+    <!-- 4: ENVELOPE ZONES -->
+    <section class="card">
+      <h2>4. Envelope zones (GC<sub>p</sub>)</h2>
+      <p class="sub">
+        Enter up to four MWFRS “zones” (e.g. Wall windward, Wall leeward, Roof windward, Roof leeward) with
+        GC<sub>p</sub> values from the ASCE 7 envelope figures. The helper computes p = q<sub>h</sub>(GC<sub>p</sub> − GC<sub>pi</sub>)
+        and p = q<sub>h</sub>(GC<sub>p</sub> + GC<sub>pi</sub>) and reports an envelope net pressure.
+      </p>
+
+      <div class="grid">
+        <div class="field">
+          <label for="z1Name">Zone 1 name</label>
+          <input id="z1Name" type="text" placeholder="Wall windward" />
+        </div>
+        <div class="field">
+          <label for="z1GCp">Zone 1 GC<sub>p</sub></label>
+          <input id="z1GCp" type="number" step="0.01" placeholder="-0.8, +0.8, etc." />
+        </div>
+        <div class="field">
+          <label for="z1Trib">Zone 1 tributary area or note</label>
+          <input id="z1Trib" type="text" placeholder="optional: use for reactions, etc." />
+        </div>
+
+        <div class="field">
+          <label for="z2Name">Zone 2 name</label>
+          <input id="z2Name" type="text" placeholder="Wall leeward" />
+        </div>
+        <div class="field">
+          <label for="z2GCp">Zone 2 GC<sub>p</sub></label>
+          <input id="z2GCp" type="number" step="0.01" placeholder="-0.5, etc." />
+        </div>
+        <div class="field">
+          <label for="z2Trib">Zone 2 tributary area or note</label>
+          <input id="z2Trib" type="text" placeholder="optional" />
+        </div>
+
+        <div class="field">
+          <label for="z3Name">Zone 3 name</label>
+          <input id="z3Name" type="text" placeholder="Roof windward" />
+        </div>
+        <div class="field">
+          <label for="z3GCp">Zone 3 GC<sub>p</sub></label>
+          <input id="z3GCp" type="number" step="0.01" placeholder="-0.9, etc." />
+        </div>
+        <div class="field">
+          <label for="z3Trib">Zone 3 tributary area or note</label>
+          <input id="z3Trib" type="text" placeholder="optional" />
+        </div>
+
+        <div class="field">
+          <label for="z4Name">Zone 4 name</label>
+          <input id="z4Name" type="text" placeholder="Roof leeward / corner" />
+        </div>
+        <div class="field">
+          <label for="z4GCp">Zone 4 GC<sub>p</sub></label>
+          <input id="z4GCp" type="number" step="0.01" placeholder="-1.3, etc." />
+        </div>
+        <div class="field">
+          <label for="z4Trib">Zone 4 tributary area or note</label>
+          <input id="z4Trib" type="text" placeholder="optional" />
+        </div>
+      </div>
+
+      <div class="button-row">
+        <button class="primary" type="button" id="btnCalc">🌬️ Compute wind pressures</button>
+        <button class="secondary" type="button" id="btnCopy">📋 Copy report</button>
+      </div>
+    </section>
+
+    <!-- OUTPUT -->
+    <section class="card">
+      <h2>5. Wind design summary</h2>
+      <p class="sub">
+        Report text suitable for pasting into a calc package. Edit as needed and verify against ASCE 7.
+      </p>
+      <textarea id="report" readonly></textarea>
+      <div id="copyStatus" class="copy-status" aria-live="polite"></div>
+    </section>
+
+    <footer>
+      Wind Load Helper – Envelope-style low-rise MWFRS; verify all values against ASCE 7 and local code.
+    </footer>
+  </div>
+
+  <script>
+    function num(id) {
+      var v = parseFloat(document.getElementById(id).value);
+      return isNaN(v) ? null : v;
+    }
+
+    function str(id) {
+      return (document.getElementById(id).value || "").trim();
+    }
+
+    function fmt(x, digits) {
+      if (x === null || x === undefined || isNaN(x)) return "N/A";
+      return x.toFixed(digits != null ? digits : 3);
+    }
+
+    function updateHeightWarning() {
+      var h = num("hMean");
+      var el = document.getElementById("heightWarning");
+      if (h !== null && h > 60) {
+        el.textContent = "Warning: mean roof height > 60 ft. Classic low-rise envelope procedures are typically limited to h ≤ 60 ft. Confirm applicability in ASCE 7.";
+      } else {
+        el.textContent = "";
+      }
+    }
+
+    function buildReport() {
+      var rep = [];
+
+      var projName   = str("projName");
+      var projNumber = str("projNumber");
+      var codeYear   = str("codeYear");
+      var asceEd     = str("asceEdition");
+      var riskCat    = str("riskCat");
+
+      rep.push("WIND DESIGN SUMMARY – LOW-RISE ENVELOPE-STYLE MWFRS");
+      rep.push("");
+
+      rep.push("PROJECT & CODE");
+      rep.push("--------------");
+      if (projName)   rep.push("Project: " + projName);
+      if (projNumber) rep.push("Project No.: " + projNumber);
+      if (codeYear)   rep.push("Governing building code: " + codeYear);
+      if (asceEd)     rep.push("Wind standard: " + asceEd);
+      if (riskCat)    rep.push("Risk category (for V, maps): " + riskCat);
+      rep.push("");
+
+      var hMean  = num("hMean");
+      var L      = num("length");
+      var B      = num("width");
+      var roofTy = str("roofType");
+      var roofSl = str("roofSlope");
+
+      rep.push("APPLICABILITY & GEOMETRY (LOW-RISE ENVELOPE METHOD)");
+      rep.push("-----------------------------------------------");
+      rep.push("Mean roof height, h: " + (hMean !== null ? fmt(hMean, 2) + " ft" : "____ ft"));
+      rep.push("Plan dimensions (L × B): " +
+        (L !== null ? fmt(L, 1) : "____") + " ft × " +
+        (B !== null ? fmt(B, 1) : "____") + " ft");
+      rep.push("Roof type: " + (roofTy || "________"));
+      rep.push("Roof slope: " + (roofSl || "________"));
+
+      var chkLowRise       = document.getElementById("chkLowRise").checked;
+      var chkRectPlan      = document.getElementById("chkRectPlan").checked;
+      var chkSimple        = document.getElementById("chkSimple").checked;
+      var chkRigidDiaphragm= document.getElementById("chkRigidDiaphragm").checked;
+
+      rep.push("");
+      rep.push("Applicability checklist (user to verify against ASCE 7):");
+      rep.push("  - Mean roof height ≤ 60 ft (low-rise): " + (chkLowRise ? "YES" : "NO / NOT CHECKED"));
+      rep.push("  - Approx. rectangular plan, no major re-entrant corners: " + (chkRectPlan ? "YES" : "NO / NOT CHECKED"));
+      rep.push("  - Simple roof (no major steps / large overhangs / irregularities): " + (chkSimple ? "YES" : "NO / NOT CHECKED"));
+      rep.push("  - Rigid diaphragm; regular, non-torsional layout: " + (chkRigidDiaphragm ? "YES" : "NO / NOT CHECKED"));
+      rep.push("If any item is NO, confirm the appropriateness of this method before using the results.");
+      rep.push("");
+
+      // Wind parameters
+      var V    = num("Vult");
+      var exp  = str("exposure");
+      var Kzt  = num("Kzt");
+      var Kd   = num("Kd");
+      var Kz   = num("Kz");
+      var encl = str("enclosure");
+      var GCpiMag = num("GCpiMag");
+
+      rep.push("WIND PARAMETERS (ASCE 7 CH. 26)");
+      rep.push("--------------------------------");
+      rep.push("Basic wind speed, V (ultimate, 3-sec gust): " + (V !== null ? fmt(V, 0) + " mph" : "____ mph"));
+      rep.push("Exposure category: " + (exp || "____"));
+      rep.push("Topographic factor, Kzt: " + (Kzt !== null ? fmt(Kzt, 3) : "____"));
+      rep.push("Directionality factor, Kd: " + (Kd !== null ? fmt(Kd, 3) : "____"));
+      rep.push("Velocity pressure coefficient at h, Kz: " + (Kz !== null ? fmt(Kz, 3) : "____"));
+      rep.push("Enclosure classification: " + (encl || "________"));
+      rep.push("|GCpi| (internal pressure coefficient magnitude): " +
+        (GCpiMag !== null ? fmt(GCpiMag, 3) : "____"));
+      rep.push("");
+
+      var qh = null;
+      if (V !== null && Kzt !== null && Kd !== null && Kz !== null) {
+        qh = 0.00256 * Kz * Kzt * Kd * V * V; // psf, ultimate
+        rep.push("Velocity pressure at mean roof height:");
+        rep.push("  qh = 0.00256 · Kz · Kzt · Kd · V²  (psf, using ultimate-speed maps)");
+        rep.push("  qh = 0.00256 · " + fmt(Kz,3) + " · " + fmt(Kzt,3) + " · " + fmt(Kd,3) +
+                 " · " + fmt(V,0) + "² = " + fmt(qh, 2) + " psf");
+      } else {
+        rep.push("Velocity pressure qh not computed – need V, Kz, Kzt, and Kd.");
+      }
+      rep.push("");
+
+      // Zones
+      rep.push("ZONE PRESSURES (MWFRS – ENVELOPE STYLE)");
+      rep.push("---------------------------------------");
+
+      function zoneRow(idx) {
+        var name = str("z" + idx + "Name");
+        var GCp  = num("z" + idx + "GCp");
+        var trib = str("z" + idx + "Trib");
+
+        if (!name && GCp === null && !trib) return;
+
+        rep.push("");
+        rep.push("Zone " + idx + " – " + (name || "Unnamed zone"));
+
+        rep.push("  GCp (external): " + (GCp !== null ? fmt(GCp, 3) : "____"));
+        if (trib) {
+          rep.push("  Tributary area / note: " + trib);
+        }
+
+        if (qh === null || GCp === null || GCpiMag === null) {
+          rep.push("  Net pressures not computed – need qh, GCp, and |GCpi|.");
+          return;
+        }
+
+        var GCpi = GCpiMag;
+        // Case 1: internal pressure positive
+        var p_pos = qh * (GCp - GCpi);
+        // Case 2: internal pressure negative
+        var p_neg = qh * (GCp + GCpi);
+        var p_env = Math.abs(p_pos) >= Math.abs(p_neg) ? p_pos : p_neg;
+
+        rep.push("  Net pressure with internal pressure POSITIVE  (+GCpi):");
+        rep.push("    p(+GCpi) = qh · (GCp − |GCpi|) = " +
+          fmt(qh,2) + " · (" + fmt(GCp,3) + " − " + fmt(GCpi,3) + ") = " + fmt(p_pos,2) + " psf");
+
+        rep.push("  Net pressure with internal pressure NEGATIVE (−GCpi):");
+        rep.push("    p(−GCpi) = qh · (GCp + |GCpi|) = " +
+          fmt(qh,2) + " · (" + fmt(GCp,3) + " + " + fmt(GCpi,3) + ") = " + fmt(p_neg,2) + " psf");
+
+        rep.push("  Envelope net pressure to consider for design (max |p| of the two above):");
+        rep.push("    p_env = " + fmt(p_env,2) + " psf (sign indicates pressure/suction on the defined face)");
+      }
+
+      zoneRow(1);
+      zoneRow(2);
+      zoneRow(3);
+      zoneRow(4);
+
+      rep.push("");
+      rep.push("NOTES & LIMITATIONS");
+      rep.push("-------------------");
+      rep.push("- This helper assumes the use of a low-rise envelope-style MWFRS procedure; confirm that the");
+      rep.push("  selected ASCE 7 edition permits this for the given building height, geometry, and SFRS.");
+      rep.push("- GCp values must be taken directly from the appropriate ASCE 7 figures for the building shape,");
+      rep.push("  roof type, zone widths, and wind direction considered.");
+      rep.push("- Internal pressure GCpi must be selected for the proper enclosure classification.");
+      rep.push("- Apply these pressures to the correct zones, line loads, and reactions per ASCE 7; this helper");
+      rep.push("  does not distribute loads or check members.");
+      rep.push("- Check minimum design pressures and any special provisions (roof overhangs, parapets, etc.)");
+      rep.push("- For buildings outside the low-rise assumptions, use the Directional Procedure or other methods");
+      rep.push("  as required by ASCE 7 and local code.");
+
+      return rep.join("\n");
+    }
+
+    function updateReport() {
+      var text = buildReport();
+      document.getElementById("report").value = text;
+      var status = document.getElementById("copyStatus");
+      status.textContent = "";
+      status.className = "copy-status";
+      updateHeightWarning();
+    }
+
+    function copyReport() {
+      var reportEl = document.getElementById("report");
+      var status = document.getElementById("copyStatus");
+      var text = reportEl.value || "";
+
+      if (!text.trim()) {
+        status.textContent = "Nothing to copy. Compute values first.";
+        status.className = "copy-status error";
+        return;
+      }
+
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text);
+        } else {
+          reportEl.focus();
+          reportEl.select();
+          document.execCommand("copy");
+        }
+        status.textContent = "Report copied. Paste into your calc file or document and edit as needed.";
+        status.className = "copy-status success";
+      } catch (e) {
+        status.textContent = "Could not copy automatically. Select the text and copy manually (Ctrl+C / Cmd+C).";
+        status.className = "copy-status error";
+      }
+    }
+
+    document.getElementById("btnCalc").addEventListener("click", updateReport);
+    document.getElementById("btnCopy").addEventListener("click", copyReport);
+    document.getElementById("hMean").addEventListener("input", updateHeightWarning);
+
+    // initial empty report so layout isn't blank
+    updateReport();
+  </script>
+</body>
+</html>
