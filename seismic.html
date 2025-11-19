@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Seismic Base Shear Helper (ASCE 7)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --bg: #f5f5f7;
+      --card-bg: #ffffff;
+      --border: #d0d0d5;
+      --accent: #1f6feb;
+      --accent-soft: rgba(31, 111, 235, 0.08);
+      --text-main: #111827;
+      --text-muted: #4b5563;
+      --danger: #b91c1c;
+      --radius-lg: 16px;
+      --radius-md: 10px;
+      --shadow-soft: 0 14px 30px rgba(15, 23, 42, 0.08);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #e5edff 0, #f5f5f7 55%);
+      color: var(--text-main);
+    }
+
+    .app {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 2.5rem 1rem 3rem;
+    }
+
+    header {
+      margin-bottom: 1.75rem;
+      text-align: left;
+    }
+
+    header h1 {
+      margin: 0 0 0.4rem;
+      font-size: 1.9rem;
+      letter-spacing: 0.03em;
+    }
+
+    header p {
+      margin: 0;
+      color: var(--text-muted);
+      max-width: 720px;
+      font-size: 0.95rem;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-soft);
+      padding: 1.4rem 1.5rem 1.7rem;
+      margin-bottom: 1.4rem;
+      border: 1px solid rgba(148,163,184,0.3);
+    }
+
+    .card h2 {
+      margin: 0 0 0.7rem;
+      font-size: 1.2rem;
+    }
+
+    .sub {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin: 0 0 0.6rem;
+    }
+
+    .disclaimer {
+      border-left: 4px solid var(--danger);
+      background: #fef2f2;
+      color: #7f1d1d;
+      font-size: 0.9rem;
+    }
+
+    .disclaimer strong {
+      display: inline-block;
+      margin-bottom: 0.25rem;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+      gap: 0.6rem 1rem;
+      margin-top: 0.4rem;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      font-size: 0.85rem;
+    }
+
+    .field label {
+      margin-bottom: 0.14rem;
+      color: var(--text-muted);
+    }
+
+    .field input,
+    .field select {
+      padding: 0.35rem 0.45rem;
+      border-radius: 8px;
+      border: 1px solid #d1d5db;
+      background: #f9fafb;
+      font-size: 0.85rem;
+    }
+
+    .field input:focus,
+    .field select:focus {
+      outline: 2px solid var(--accent);
+      outline-offset: 1px;
+      background: #ffffff;
+    }
+
+    .inline-radio {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.8rem;
+      font-size: 0.8rem;
+      margin-top: 0.1rem;
+      color: var(--text-muted);
+    }
+
+    .inline-radio label {
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+      cursor: pointer;
+    }
+
+    .button-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.65rem;
+      margin-top: 0.9rem;
+    }
+
+    button {
+      border-radius: 999px;
+      border: none;
+      padding: 0.55rem 1.15rem;
+      font-size: 0.92rem;
+      font-weight: 500;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      white-space: nowrap;
+    }
+
+    button.primary {
+      background: var(--accent);
+      color: #ffffff;
+      box-shadow: 0 10px 18px rgba(31,111,235,0.35);
+    }
+
+    button.secondary {
+      background: #e5e7eb;
+      color: #111827;
+    }
+
+    button:active {
+      transform: translateY(1px);
+      box-shadow: none;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 420px;
+      font-family: "SF Mono", ui-monospace, Menlo, Consolas, monospace;
+      font-size: 0.86rem;
+      line-height: 1.5;
+      padding: 0.9rem;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border);
+      background: #0f172a;
+      color: #e5e7eb;
+      box-shadow: inset 0 0 0 1px rgba(15,23,42,0.8);
+      resize: vertical;
+    }
+
+    textarea:focus {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    .copy-status {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-top: 0.35rem;
+      min-height: 1em;
+    }
+
+    .copy-status.success { color: #059669; }
+    .copy-status.error { color: var(--danger); }
+
+    footer {
+      margin-top: 1rem;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      text-align: right;
+    }
+
+    @media (max-width: 640px) {
+      .app { padding-inline: 0.8rem; }
+      header h1 { font-size: 1.6rem; }
+      button.primary,
+      button.secondary {
+        flex: 1 1 auto;
+        justify-content: center;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <h1>Seismic Base Shear Helper (ASCE 7)</h1>
+      <p>
+        Quick helper for Equivalent Lateral Force (ELF) calculations using ASCE 7-10/16/22 style parameters.
+        You still need to pull code values (R, C<sub>t</sub>, x, etc.) from ASCE 7 and verify everything as the
+        Engineer of Record.
+      </p>
+    </header>
+
+    <section class="card disclaimer">
+      <strong>Important – Not a design program</strong>
+      <p>
+        This tool is for educational and drafting convenience only. It is <u>not</u> project-specific engineering,
+        does not create an Engineer-of-Record or client relationship, and is not a substitute for design, review,
+        or code compliance checks by a licensed Professional Engineer familiar with the project, jurisdiction,
+        and applicable codes.
+      </p>
+      <p>
+        The Structural Engineering Podcast, its hosts, guests, and contributors assume no responsibility for the
+        completeness, correctness, or application of any values produced here. By using this helper you agree you
+        are solely responsible for verifying all inputs, formulas, and results against ASCE 7 and local amendments.
+      </p>
+    </section>
+
+    <!-- STEP 1: PROJECT + CODE -->
+    <section class="card">
+      <h2>1. Project &amp; Code</h2>
+      <p class="sub">Basic identifiers plus which ASCE 7 edition and risk category you’re using.</p>
+      <div class="grid">
+        <div class="field">
+          <label for="projName">Project name</label>
+          <input id="projName" type="text" placeholder="Tomlinson House" />
+        </div>
+        <div class="field">
+          <label for="projNumber">Project number</label>
+          <input id="projNumber" type="text" placeholder="P-2025-001" />
+        </div>
+        <div class="field">
+          <label for="codeYear">Building code</label>
+          <input id="codeYear" type="text" placeholder="IBC 2018, local amendments" />
+        </div>
+        <div class="field">
+          <label for="asceEdition">ASCE 7 edition</label>
+          <select id="asceEdition">
+            <option value="">(select)</option>
+            <option value="ASCE 7-10">ASCE 7-10</option>
+            <option value="ASCE 7-16">ASCE 7-16</option>
+            <option value="ASCE 7-22">ASCE 7-22</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="riskCat">Risk category</label>
+          <select id="riskCat">
+            <option value="">(select)</option>
+            <option value="I">I</option>
+            <option value="II">II</option>
+            <option value="III">III</option>
+            <option value="IV">IV</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="Ie">Importance factor, I<sub>e</sub></label>
+          <input id="Ie" type="number" step="0.01" placeholder="1.0, 1.25, 1.5..." />
+        </div>
+      </div>
+    </section>
+
+    <!-- STEP 2: HAZARD PARAMETERS -->
+    <section class="card">
+      <h2>2. Hazard parameters</h2>
+      <p class="sub">
+        Enter values from your USGS / hazard report. For ASCE 7-22 you can treat SDS/SD1 as the design spectral
+        accelerations S<sub>a</sub> at short period and 1-sec.
+      </p>
+      <div class="grid">
+        <div class="field">
+          <label for="siteClass">Seismic site class</label>
+          <select id="siteClass">
+            <option value="">(select)</option>
+            <option value="Site Class A">Site Class A</option>
+            <option value="Site Class B">Site Class B</option>
+            <option value="Site Class BC">Site Class BC</option>
+            <option value="Site Class C">Site Class C</option>
+            <option value="Site Class CD">Site Class CD</option>
+            <option value="Site Class D">Site Class D</option>
+            <option value="Site Class DE">Site Class DE</option>
+            <option value="Site Class E">Site Class E</option>
+            <option value="Site Class F">Site Class F</option>
+          </select>
+          <div class="inline-radio">
+            <label><input type="radio" name="siteBasis" value="Geotechnical report" checked /> from geotechnical report</label>
+            <label><input type="radio" name="siteBasis" value="Assumed for preliminary design" /> assumed for preliminary design</label>
+          </div>
+        </div>
+        <div class="field">
+          <label for="Sds">SDS (short-period design accel, g)</label>
+          <input id="Sds" type="number" step="0.001" placeholder="e.g. 0.85" />
+        </div>
+        <div class="field">
+          <label for="Sd1">SD1 (1-sec design accel, g)</label>
+          <input id="Sd1" type="number" step="0.001" placeholder="e.g. 0.42" />
+        </div>
+        <div class="field">
+          <label for="S1">S<sub>1</sub> (mapped 1-sec MCER, g)</label>
+          <input id="S1" type="number" step="0.001" placeholder="e.g. 0.7" />
+        </div>
+        <div class="field">
+          <label for="Tl">T<sub>L</sub> (long-period transition, s)</label>
+          <input id="Tl" type="number" step="0.01" placeholder="e.g. 4.0" />
+        </div>
+      </div>
+    </section>
+
+    <!-- STEP 3: SYSTEM -->
+    <section class="card">
+      <h2>3. Seismic force-resisting system</h2>
+      <p class="sub">
+        Describe the system and enter R, C<sub>d</sub>, and Ω<sub>0</sub> from the appropriate ASCE 7 table
+        (e.g. Table 12.2-1 / 12.2-2).
+      </p>
+      <div class="grid">
+        <div class="field">
+          <label for="systemName">System description</label>
+          <input id="systemName" type="text" placeholder="e.g. Special steel moment frame" />
+        </div>
+        <div class="field">
+          <label for="R">R (response modification factor)</label>
+          <input id="R" type="number" step="0.1" placeholder="e.g. 8" />
+        </div>
+        <div class="field">
+          <label for="Cd">C<sub>d</sub> (deflection amplification)</label>
+          <input id="Cd" type="number" step="0.1" placeholder="e.g. 5.5" />
+        </div>
+        <div class="field">
+          <label for="Omega">Ω<sub>0</sub> (overstrength factor)</label>
+          <input id="Omega" type="number" step="0.1" placeholder="e.g. 3" />
+        </div>
+      </div>
+    </section>
+
+    <!-- STEP 4: BUILDING PROPERTIES -->
+    <section class="card">
+      <h2>4. Building properties</h2>
+      <p class="sub">
+        Enter height and either the fundamental period T, or C<sub>t</sub>, x, and h<sub>n</sub> to compute an
+        approximate period. Weight W can be in kips, kN, etc. – base shear comes out in the same units.
+      </p>
+      <div class="grid">
+        <div class="field">
+          <label for="hn">h<sub>n</sub> (height to roof / C.G., ft)</label>
+          <input id="hn" type="number" step="0.1" placeholder="e.g. 45" />
+        </div>
+        <div class="field">
+          <label for="T">Fundamental period, T (s)</label>
+          <input id="T" type="number" step="0.01" placeholder="leave blank to compute from Cₜ, x, hₙ" />
+        </div>
+        <div class="field">
+          <label for="Ct">C<sub>t</sub> (from ASCE 7 period table)</label>
+          <input id="Ct" type="number" step="0.0001" placeholder="optional" />
+        </div>
+        <div class="field">
+          <label for="xExp">x exponent (from ASCE 7 period table)</label>
+          <input id="xExp" type="number" step="0.01" placeholder="optional" />
+        </div>
+        <div class="field">
+          <label for="W">Total seismic weight, W (kips / kN / etc.)</label>
+          <input id="W" type="number" step="0.1" placeholder="e.g. 720" />
+        </div>
+        <div class="field">
+          <label for="asdFactor">ASD factor (optional, e.g. 0.7)</label>
+          <input id="asdFactor" type="number" step="0.01" placeholder="0.7" />
+        </div>
+      </div>
+
+      <div class="button-row">
+        <button class="primary" type="button" id="btnCalc">📐 Compute seismic values</button>
+        <button class="secondary" type="button" id="btnCopy">📋 Copy report</button>
+      </div>
+    </section>
+
+    <!-- OUTPUT -->
+    <section class="card">
+      <h2>5. Seismic design summary</h2>
+      <p class="sub">
+        Report text suitable for pasting into a calc package. Edit as needed and verify against ASCE 7.
+      </p>
+      <textarea id="report" readonly></textarea>
+      <div id="copyStatus" class="copy-status" aria-live="polite"></div>
+    </section>
+
+    <footer>
+      Seismic Base Shear Helper – for educational use only; verify all values against ASCE 7 and local code.
+    </footer>
+  </div>
+
+  <script>
+    function valNum(id) {
+      var v = parseFloat(document.getElementById(id).value);
+      return isNaN(v) ? null : v;
+    }
+
+    function valStr(id) {
+      return (document.getElementById(id).value || "").trim();
+    }
+
+    function fmt(x, digits) {
+      if (x === null || x === undefined || isNaN(x)) return "N/A";
+      return x.toFixed(digits != null ? digits : 3);
+    }
+
+    function getSiteBasis() {
+      var radios = document.getElementsByName("siteBasis");
+      for (var i = 0; i < radios.length; i++) {
+        if (radios[i].checked) return radios[i].value;
+      }
+      return "";
+    }
+
+    function buildReport() {
+      var report = [];
+
+      // --- PROJECT + CODE ---
+      var projName = valStr("projName");
+      var projNumber = valStr("projNumber");
+      var codeYear = valStr("codeYear");
+      var asceEd = valStr("asceEdition");
+      var riskCat = valStr("riskCat");
+      var Ie = valNum("Ie");
+      if (Ie === null) Ie = null; // leave null if not entered
+
+      report.push("SEISMIC DESIGN SUMMARY – EQUIVALENT LATERAL FORCE (ELF)");
+      report.push("");
+      report.push("PROJECT & CODE");
+      report.push("--------------");
+      if (projName)   report.push("Project: " + projName);
+      if (projNumber) report.push("Project No.: " + projNumber);
+      if (codeYear)   report.push("Governing building code: " + codeYear);
+      if (asceEd)     report.push("Seismic standard: " + asceEd);
+      if (riskCat)    report.push("Risk category: " + riskCat);
+      if (Ie !== null) {
+        report.push("Seismic importance factor, Ie: " + fmt(Ie, 2));
+      } else {
+        report.push("Seismic importance factor, Ie: ______ (see ASCE 7 Chapter 11)");
+      }
+      report.push("");
+
+      // --- HAZARD ---
+      var siteClass = valStr("siteClass");
+      var siteBasis = getSiteBasis();
+      var Sds = valNum("Sds");
+      var Sd1 = valNum("Sd1");
+      var S1  = valNum("S1");
+      var Tl  = valNum("Tl");
+
+      report.push("HAZARD PARAMETERS");
+      report.push("-----------------");
+      report.push("Site class: " + (siteClass || "________"));
+      if (siteBasis) report.push("Site class basis: " + siteBasis);
+      report.push("SDS (short-period design accel, g): " + (Sds !== null ? fmt(Sds, 3) : "____"));
+      report.push("SD1 (1-sec design accel, g): " + (Sd1 !== null ? fmt(Sd1, 3) : "____"));
+      report.push("S1 (mapped 1-sec MCER, g): " + (S1 !== null ? fmt(S1, 3) : "____"));
+      report.push("TL (long-period transition, s): " + (Tl !== null ? fmt(Tl, 3) : "____"));
+      report.push("");
+
+      // --- SYSTEM ---
+      var sysName = valStr("systemName");
+      var R  = valNum("R");
+      var Cd = valNum("Cd");
+      var Omega = valNum("Omega");
+
+      report.push("SEISMIC FORCE-RESISTING SYSTEM");
+      report.push("------------------------------");
+      report.push("System description: " + (sysName || "____________________________"));
+      report.push("R (response modification factor): " + (R !== null ? fmt(R, 2) : "____"));
+      report.push("Cd (deflection amplification factor): " + (Cd !== null ? fmt(Cd, 2) : "____"));
+      report.push("Ω0 (overstrength factor): " + (Omega !== null ? fmt(Omega, 2) : "____"));
+      report.push("");
+
+      // --- BUILDING PROPERTIES ---
+      var hn = valNum("hn");
+      var T  = valNum("T");
+      var Ct = valNum("Ct");
+      var x  = valNum("xExp");
+      var W  = valNum("W");
+      var asdFactor = valNum("asdFactor");
+
+      var T_source = "entered directly";
+
+      if (T === null && Ct !== null && x !== null && hn !== null) {
+        T = Ct * Math.pow(hn, x);
+        T_source = "approximate, T = Ct * h_n^x";
+      }
+
+      report.push("BUILDING GEOMETRY & WEIGHT");
+      report.push("---------------------------");
+      report.push("h_n (height to roof / C.G.): " + (hn !== null ? fmt(hn, 2) + " ft" : "____ ft"));
+      if (Ct !== null || x !== null) {
+        report.push("Period parameters: Ct = " + (Ct !== null ? fmt(Ct, 4) : "____")
+          + ", x = " + (x !== null ? fmt(x, 2) : "____"));
+      }
+      report.push("Fundamental period T: " + (T !== null ? fmt(T, 3) + " s (" + T_source + ")" : "____ s"));
+      report.push("Total seismic weight W (consistent units): " + (W !== null ? fmt(W, 2) : "____"));
+      if (asdFactor !== null) {
+        report.push("ASD reduction factor (for optional ASD base shear): " + fmt(asdFactor, 2));
+      }
+      report.push("");
+
+      // --- COMPUTE Cs ---
+      report.push("SEISMIC COEFFICIENTS (ELF)");
+      report.push("---------------------------");
+
+      var IeUsed = Ie !== null ? Ie : 1.0; // assume 1.0 if missing, but flag it
+      var notes = [];
+
+      var Cs_eq2 = null;
+      if (Sds !== null && R !== null) {
+        Cs_eq2 = Sds * IeUsed / R;
+        report.push("Candidate Cs from SDS and R (Eqn 12.8-2 style): Cs = SDS * Ie / R = " + fmt(Cs_eq2, 3));
+      } else {
+        report.push("Cs from SDS and R cannot be computed – need SDS, R, and Ie.");
+      }
+
+      var Cs_upper = null;
+      if (Sd1 !== null && R !== null && T !== null && Tl !== null) {
+        if (T <= Tl) {
+          Cs_upper = Sd1 * IeUsed / (T * R);
+          report.push("Upper-bound Cs for T ≤ TL (Eqn 12.8-3 style): " + fmt(Cs_upper, 3));
+        } else {
+          Cs_upper = Sd1 * Tl * IeUsed / (T * T * R);
+          report.push("Upper-bound Cs for T > TL (Eqn 12.8-4 style): " + fmt(Cs_upper, 3));
+        }
+      } else {
+        report.push("Upper-bound Cs (period-based) not evaluated – need SD1, R, Ie, T, and TL.");
+      }
+
+      var Cs_min_base = null;
+      if (Sds !== null) {
+        var c1 = 0.044 * Sds * IeUsed;
+        var c2 = 0.01;
+        Cs_min_base = Math.max(c1, c2);
+        report.push("Minimum Cs from SDS and absolute floor (Eqn 12.8-5 style):");
+        report.push("  0.044 * SDS * Ie = " + fmt(c1, 3) + ",  absolute min = 0.01  → base min Cs = " + fmt(Cs_min_base, 3));
+      } else {
+        report.push("Minimum Cs from SDS not evaluated – need SDS and Ie.");
+      }
+
+      var Cs_min_long = null;
+      if (S1 !== null && R !== null && S1 >= 0.6) {
+        Cs_min_long = 0.5 * S1 * IeUsed / R;
+        report.push("Additional minimum Cs for S1 ≥ 0.6 g (Eqn 12.8-6 style): " + fmt(Cs_min_long, 3));
+      } else if (S1 !== null && S1 < 0.6) {
+        report.push("S1 < 0.6 g → long-period minimum Cs (Eqn 12.8-6) does not govern.");
+      } else {
+        report.push("Additional minimum Cs for S1 ≥ 0.6 g not evaluated – need S1 and R.");
+      }
+
+      var Cs_min = null;
+      if (Cs_min_base !== null) Cs_min = Cs_min_base;
+      if (Cs_min_long !== null) Cs_min = (Cs_min === null) ? Cs_min_long : Math.max(Cs_min, Cs_min_long);
+
+      if (Cs_min !== null) {
+        report.push("Overall minimum Cs used for comparison: " + fmt(Cs_min, 3));
+      }
+
+      // Choose design Cs
+      var Cs_design = Cs_eq2;
+      var Cs_governing = "SDS * Ie / R";
+
+      if (Cs_design !== null && Cs_upper !== null && Cs_design > Cs_upper) {
+        Cs_design = Cs_upper;
+        Cs_governing = "upper-bound period limit";
+      }
+
+      if (Cs_design !== null && Cs_min !== null && Cs_design < Cs_min) {
+        Cs_design = Cs_min;
+        Cs_governing = "minimum Cs requirement";
+      }
+
+      report.push("");
+
+      if (Cs_design !== null) {
+        report.push("DESIGN Cs USED: " + fmt(Cs_design, 3) + "  (governing check: " + Cs_governing + ")");
+      } else {
+        report.push("DESIGN Cs NOT DETERMINED – missing key inputs. Check SDS, SD1, S1, R, Ie, T, TL.");
+      }
+
+      // Base shear
+      var V = null;
+      if (Cs_design !== null && W !== null) {
+        V = Cs_design * W;
+        report.push("Strength-level base shear: V = Cs · W = " + fmt(Cs_design, 3) + " × " + fmt(W, 2) + " = " + fmt(V, 2));
+      } else {
+        report.push("Base shear V not computed – need Cs and W.");
+      }
+
+      if (V !== null && asdFactor !== null) {
+        var V_asd = V * asdFactor;
+        report.push("ASD-level base shear (approx.): V_ASD = " + fmt(asdFactor, 2) + " × V = " + fmt(V_asd, 2));
+      }
+
+      report.push("");
+      report.push("NOTES & CHECKS");
+      report.push("--------------");
+      report.push("- Verify Seismic Design Category (SDC) per ASCE 7 Chapter 11 using SDS, SD1, and risk category.");
+      report.push("- Confirm selected SFRS is permitted for the SDC and height per ASCE 7 system tables.");
+      report.push("- Confirm period assumptions (T) and any code limits on approximate vs. analytical periods.");
+      report.push("- Use Cd and Ω0 for drift checks, collector / overstrength design, and other detailing requirements.");
+      report.push("- Distribute base shear vertically and check diaphragms, collectors, and elements per ASCE 7 Chapter 12.");
+      report.push("- This summary is only a starting point; final design must follow the full provisions of ASCE 7 and local amendments.");
+
+      return report.join("\n");
+    }
+
+    function updateReport() {
+      var text = buildReport();
+      document.getElementById("report").value = text;
+      var status = document.getElementById("copyStatus");
+      status.textContent = "";
+      status.className = "copy-status";
+    }
+
+    function copyReport() {
+      var reportEl = document.getElementById("report");
+      var status = document.getElementById("copyStatus");
+      var text = reportEl.value || "";
+
+      if (!text.trim()) {
+        status.textContent = "Nothing to copy. Compute values first.";
+        status.className = "copy-status error";
+        return;
+      }
+
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text);
+        } else {
+          reportEl.focus();
+          reportEl.select();
+          document.execCommand("copy");
+        }
+        status.textContent = "Report copied. Paste into your calc file or document and edit as needed.";
+        status.className = "copy-status success";
+      } catch (e) {
+        status.textContent = "Could not copy automatically. Select the text and copy manually (Ctrl+C / Cmd+C).";
+        status.className = "copy-status error";
+      }
+    }
+
+    document.getElementById("btnCalc").addEventListener("click", updateReport);
+    document.getElementById("btnCopy").addEventListener("click", copyReport);
+
+    // build an initial empty report so the layout isn't blank
+    updateReport();
+  </script>
+</body>
+</html>
