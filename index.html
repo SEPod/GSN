@@ -68,6 +68,12 @@
       font-size: 1.2rem;
     }
 
+    .card h3 {
+      margin: 0.25rem 0 0.5rem;
+      font-size: 1rem;
+      color: var(--text-main);
+    }
+
     .disclaimer {
       border-left: 4px solid var(--danger);
       background: #fef2f2;
@@ -94,6 +100,42 @@
       border-radius: 999px;
       text-transform: uppercase;
       letter-spacing: 0.06em;
+    }
+
+    .field-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 0.6rem 1rem;
+      margin-top: 0.4rem;
+      margin-bottom: 0.9rem;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      font-size: 0.85rem;
+      color: var(--text-main);
+    }
+
+    .field label {
+      margin-bottom: 0.15rem;
+      color: var(--text-muted);
+    }
+
+    .field input,
+    .field select {
+      padding: 0.35rem 0.45rem;
+      border-radius: 8px;
+      border: 1px solid #d1d5db;
+      font-size: 0.85rem;
+      background: #f9fafb;
+    }
+
+    .field input:focus,
+    .field select:focus {
+      outline: 2px solid var(--accent);
+      outline-offset: 1px;
+      background: #ffffff;
     }
 
     .section-grid {
@@ -125,15 +167,6 @@
       background: #f3f4ff;
       border-color: var(--accent-soft);
       box-shadow: 0 0 0 1px var(--accent-soft);
-    }
-
-    .inline-option {
-      display: flex;
-      align-items: center;
-      gap: 0.4rem;
-      font-size: 0.9rem;
-      color: var(--text-muted);
-      margin-top: 0.4rem;
     }
 
     .button-row {
@@ -248,8 +281,8 @@
     <header>
       <h1>Structural General Notes Generator</h1>
       <p>
-        Select the structural note sections your project actually uses, then generate a text block
-        you or your engineer can review, edit, and paste into your drawings or specs.
+        Enter basic project data and select the structural note sections your project actually uses.
+        Generate a text block you or your engineer can review, edit, and paste into your drawings or specs.
       </p>
     </header>
 
@@ -275,9 +308,96 @@
 
     <section class="card controls">
       <h2>
-        Choose Sections
-        <span class="tag">Toggle materials &amp; topics</span>
+        Project Data &amp; Sections
+        <span class="tag">Customize output</span>
       </h2>
+
+      <h3>Project info</h3>
+      <div class="field-grid">
+        <div class="field">
+          <label for="projectName">Project name</label>
+          <input id="projectName" type="text" placeholder="e.g., Tomlinson House Renovation" />
+        </div>
+        <div class="field">
+          <label for="projectNumber">Project number</label>
+          <input id="projectNumber" type="text" placeholder="e.g., P-2025-001" />
+        </div>
+        <div class="field">
+          <label for="drawingDate">Drawing date</label>
+          <input id="drawingDate" type="date" />
+        </div>
+      </div>
+
+      <h3>Design criteria</h3>
+      <div class="field-grid">
+        <div class="field">
+          <label for="buildingCode">Building code</label>
+          <select id="buildingCode">
+            <option value="">(leave blank)</option>
+            <option value="IBC 2015">IBC 2015</option>
+            <option value="IBC 2018">IBC 2018</option>
+            <option value="IBC 2021">IBC 2021</option>
+            <option value="IBC 2024">IBC 2024</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="asceEdition">ASCE 7 edition</label>
+          <select id="asceEdition">
+            <option value="">(leave blank)</option>
+            <option value="ASCE 7-10">ASCE 7-10</option>
+            <option value="ASCE 7-16">ASCE 7-16</option>
+            <option value="ASCE 7-22">ASCE 7-22</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="riskCategory">Risk category</label>
+          <select id="riskCategory">
+            <option value="">(leave blank)</option>
+            <option value="Risk Category I">Risk Category I</option>
+            <option value="Risk Category II">Risk Category II</option>
+            <option value="Risk Category III">Risk Category III</option>
+            <option value="Risk Category IV">Risk Category IV</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="siteClass">Site class</label>
+          <select id="siteClass">
+            <option value="">(leave blank)</option>
+            <option value="Site Class A">Site Class A</option>
+            <option value="Site Class B">Site Class B</option>
+            <option value="Site Class C">Site Class C</option>
+            <option value="Site Class D">Site Class D</option>
+            <option value="Site Class E">Site Class E</option>
+            <option value="Site Class F">Site Class F</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="pg">Ground snow, Pg (psf)</label>
+          <input id="pg" type="number" step="0.1" placeholder="e.g., 30" />
+        </div>
+        <div class="field">
+          <label for="pf">Flat roof snow, pf (psf)</label>
+          <input id="pf" type="number" step="0.1" placeholder="e.g., 21" />
+        </div>
+        <div class="field">
+          <label for="vult">V<sub>ult</sub> (mph)</label>
+          <input id="vult" type="number" step="1" placeholder="e.g., 115" />
+        </div>
+        <div class="field">
+          <label for="vasd">V<sub>asd</sub> (mph)</label>
+          <input id="vasd" type="number" step="1" placeholder="e.g., 89" />
+        </div>
+        <div class="field">
+          <label for="sds">SDS (g)</label>
+          <input id="sds" type="number" step="0.01" placeholder="e.g., 0.85" />
+        </div>
+        <div class="field">
+          <label for="sd1">SD1 (g)</label>
+          <input id="sd1" type="number" step="0.01" placeholder="e.g., 0.42" />
+        </div>
+      </div>
+
+      <h3>Include these sections</h3>
       <p class="output-subtitle">
         Uncheck anything your project doesn’t use (for example, no masonry on a small steel-framed retrofit).
       </p>
@@ -328,11 +448,6 @@
           <span>K. Construction loads &amp; temporary conditions</span>
         </label>
       </div>
-
-      <label class="inline-option">
-        <input type="checkbox" id="chk-include-disclaimer" checked />
-        <span>Include a short disclaimer at the top of the generated text.</span>
-      </label>
 
       <div class="button-row">
         <button class="primary" id="btn-generate" type="button">
@@ -393,60 +508,7 @@ ALL WORK SHALL COMPLY WITH APPLICABLE FEDERAL, STATE, AND LOCAL SAFETY REGULATIO
         id: "codes",
         checkboxId: "chk-codes",
         heading: "B. CODES, STANDARDS, AND DESIGN CRITERIA",
-        body: `
-DESIGN CODES / STANDARDS
-------------------------
-
-BUILDING CODE: ____________________________________________
-
-ASCE 7 EDITION: ____________________________________________
-
-PRIMARY STRUCTURAL STANDARDS: ACI 318/301, TMS 402/602, AISC 360/303, AISC 341 (WHERE APPLICABLE), NDS/SDPWS, SDI, AISI S100, AND OTHER STANDARDS AS INDICATED IN THE MATERIAL SECTIONS AND PROJECT SPECIFICATIONS.
-
-RISK CATEGORY: _____________________________________________
-
-OCCUPANCY / USE (PER ARCHITECTURAL CODE SUMMARY): _________
-
-
-DESIGN LOAD PARAMETERS
-----------------------
-
-GROUND SNOW LOAD, Pg = ______ PSF
-
-FLAT ROOF SNOW LOAD, pf = ______ PSF
-
-IMPORTANCE FACTOR, Is = ______
-
-ULTIMATE WIND SPEED, Vult = ______ MPH
-
-NOMINAL WIND SPEED, Vasd = ______ MPH
-
-WIND EXPOSURE CATEGORY: _________________________________
-
-INTERNAL PRESSURE COEFFICIENT, GCpi = ±___________________
-
-SITE CLASS: _______________________________________________
-
-SDS = ______ g
-
-SD1 = ______ g
-
-SEISMIC DESIGN CATEGORY (SDC): ____________________________
-
-ANALYSIS PROCEDURE (ELF, RSA, OTHER): ____________________
-
-
-SOILS / FOUNDATIONS
--------------------
-
-GEOTECHNICAL REPORT: __________________________  REPORT NO.: ______  DATE: _________
-
-ALLOWABLE NET BEARING PRESSURE (TYPICAL): ______ PSF ON [UNDISTURBED NATIVE SOIL / COMPACTED STRUCTURAL FILL] UNLESS NOTED OTHERWISE.
-
-FROST DEPTH: ______ INCHES MINIMUM BELOW EXTERIOR GRADE, OR AS REQUIRED BY LOCAL CODE, WHICHEVER IS MORE STRINGENT.
-
-LATERAL EARTH PRESSURES, FRICTION COEFFICIENTS, AND OTHER SOIL PARAMETERS USED FOR DESIGN SHALL BE INDICATED ON THE DRAWINGS AND SHALL BE CONSISTENT WITH THE GEOTECHNICAL REPORT.
-`.trim()
+        body: "" // built dynamically
       },
       {
         id: "qa",
@@ -654,66 +716,32 @@ PRIOR TO CORING, CUTTING, OR REMOVING PORTIONS OF EXISTING STRUCTURAL MEMBERS OR
       }
     ];
 
-    function buildNotes() {
-      const includeDisclaimer = document.getElementById("chk-include-disclaimer").checked;
-      let text = "";
+    function buildCodesBody(params) {
+      const {
+        buildingCode,
+        asceEdition,
+        riskCategory,
+        siteClass,
+        pg,
+        pf,
+        vult,
+        vasd,
+        sds,
+        sd1
+      } = params;
 
-      if (includeDisclaimer) {
-        text += disclaimerBlock + "\n";
-      }
+      const shortBlank = "________________";
 
-      sections.forEach(section => {
-        const cb = document.getElementById(section.checkboxId);
-        if (cb && cb.checked) {
-          text += section.heading + "\n";
-          text += "-".repeat(section.heading.length) + "\n\n";
-          text += section.body + "\n\n\n";
-        }
-      });
+      const lines = [];
 
-      if (text.trim() === "") {
-        text = "No sections selected. Please choose at least one section above.";
-      }
-
-      const output = document.getElementById("output");
-      output.value = text;
-      const status = document.getElementById("copy-status");
-      status.textContent = "";
-      status.className = "copy-status";
-    }
-
-    async function copyNotes() {
-      const output = document.getElementById("output");
-      const status = document.getElementById("copy-status");
-      const text = output.value;
-
-      if (!text || !text.trim()) {
-        status.textContent = "Nothing to copy. Generate notes first.";
-        status.className = "copy-status error";
-        return;
-      }
-
-      try {
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-          await navigator.clipboard.writeText(text);
-        } else {
-          output.focus();
-          output.select();
-          document.execCommand("copy");
-        }
-        status.textContent = "Copied to clipboard. Paste into your project file and edit as needed.";
-        status.className = "copy-status success";
-      } catch (err) {
-        status.textContent = "Could not copy automatically. Select the text above and copy it manually (Ctrl+C / Cmd+C).";
-        status.className = "copy-status error";
-      }
-    }
-
-    document.getElementById("btn-generate").addEventListener("click", buildNotes);
-    document.getElementById("btn-copy").addEventListener("click", copyNotes);
-
-    // Build default notes on load
-    buildNotes();
-  </script>
-</body>
-</html>
+      lines.push("DESIGN CODES / STANDARDS");
+      lines.push("------------------------");
+      lines.push("");
+      lines.push(
+        "BUILDING CODE: " + (buildingCode || shortBlank)
+      );
+      lines.push(
+        "ASCE 7 EDITION: " + (asceEdition || shortBlank)
+      );
+      lines.push(
+        "PRIMARY STRUCTURAL STANDARDS: ACI 318/301, TMS 402/602, AISC 360/303, AISC 341 (WHERE APPLICABLE), NDS/SDPWS, SDI, AISI S100, AND OTHER STANDARDS AS INDICATED IN THE MATERIAL SECTIONS AND PROJECT SPECIFICATIONS."
