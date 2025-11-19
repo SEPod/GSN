@@ -1,16 +1,377 @@
-<script>
-  const disclaimerBlock = `DISCLAIMER
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Structural General Notes Generator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --bg: #f5f5f7;
+      --card-bg: #ffffff;
+      --border: #d0d0d5;
+      --accent: #1f6feb;
+      --accent-soft: rgba(31, 111, 235, 0.08);
+      --text-main: #111827;
+      --text-muted: #4b5563;
+      --danger: #b91c1c;
+      --radius-lg: 16px;
+      --radius-md: 10px;
+      --shadow-soft: 0 14px 30px rgba(15, 23, 42, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #e5edff 0, #f5f5f7 55%);
+      color: var(--text-main);
+    }
+
+    .app {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 2.5rem 1rem 3rem;
+    }
+
+    header {
+      margin-bottom: 1.75rem;
+      text-align: left;
+    }
+
+    header h1 {
+      margin: 0 0 0.5rem;
+      font-size: 1.9rem;
+      letter-spacing: 0.03em;
+    }
+
+    header p {
+      margin: 0;
+      color: var(--text-muted);
+      max-width: 700px;
+      font-size: 0.95rem;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-soft);
+      padding: 1.5rem 1.5rem 1.75rem;
+      margin-bottom: 1.5rem;
+      border: 1px solid rgba(148, 163, 184, 0.25);
+    }
+
+    .card h2 {
+      margin: 0 0 0.75rem;
+      font-size: 1.2rem;
+    }
+
+    .disclaimer {
+      border-left: 4px solid var(--danger);
+      background: #fef2f2;
+      color: #7f1d1d;
+      font-size: 0.9rem;
+    }
+
+    .disclaimer strong {
+      display: inline-block;
+      margin-bottom: 0.25rem;
+    }
+
+    .controls h2 {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .controls h2 span.tag {
+      font-size: 0.75rem;
+      background: var(--accent-soft);
+      color: var(--accent);
+      padding: 0.1rem 0.55rem;
+      border-radius: 999px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .section-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 0.4rem 0.9rem;
+      margin: 0.75rem 0 1rem;
+    }
+
+    .checkbox-pill {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.35rem 0.6rem;
+      border-radius: 999px;
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .checkbox-pill input {
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+
+    .checkbox-pill:hover {
+      background: #f3f4ff;
+      border-color: var(--accent-soft);
+      box-shadow: 0 0 0 1px var(--accent-soft);
+    }
+
+    .inline-option {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      margin-top: 0.4rem;
+    }
+
+    .button-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.65rem;
+      margin-top: 0.9rem;
+    }
+
+    button {
+      border-radius: 999px;
+      border: none;
+      padding: 0.55rem 1.1rem;
+      font-size: 0.92rem;
+      font-weight: 500;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      white-space: nowrap;
+    }
+
+    button.primary {
+      background: var(--accent);
+      color: white;
+      box-shadow: 0 10px 18px rgba(31, 111, 235, 0.35);
+    }
+
+    button.secondary {
+      background: #e5e7eb;
+      color: #111827;
+    }
+
+    button:active {
+      transform: translateY(1px);
+      box-shadow: none;
+    }
+
+    .output h2 {
+      margin-bottom: 0.4rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .output-subtitle {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 0.7rem;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 360px;
+      font-family: "SF Mono", ui-monospace, Menlo, Consolas, monospace;
+      font-size: 0.86rem;
+      line-height: 1.5;
+      padding: 0.9rem;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border);
+      resize: vertical;
+      background: #0f172a;
+      color: #e5e7eb;
+      box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.8);
+    }
+
+    textarea:focus {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    .copy-status {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-top: 0.35rem;
+      min-height: 1em;
+    }
+
+    .copy-status.success {
+      color: #059669;
+    }
+
+    .copy-status.error {
+      color: var(--danger);
+    }
+
+    footer {
+      margin-top: 1rem;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      text-align: right;
+    }
+
+    @media (max-width: 640px) {
+      .app {
+        padding-inline: 0.8rem;
+      }
+      header h1 {
+        font-size: 1.5rem;
+      }
+      button.primary,
+      button.secondary {
+        flex: 1 1 auto;
+        justify-content: center;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <h1>Structural General Notes Generator</h1>
+      <p>
+        Select the structural note sections your project actually uses, then generate a text block
+        you or your engineer can review, edit, and paste into your drawings or specs.
+      </p>
+    </header>
+
+    <section class="card disclaimer">
+      <strong>Important – Read Before Use</strong>
+      <p>
+        This tool and any generated text are provided for general educational and drafting convenience only.
+        They are <u>not</u> project-specific engineering, do not create an Engineer-of-Record or client relationship,
+        and are not a substitute for design, review, or code analysis by a licensed Professional Engineer familiar
+        with the specific project, jurisdiction, and applicable codes.
+      </p>
+      <p>
+        The Structural Engineering Podcast, its hosts, guests, and contributors do not assume any responsibility or
+        liability for the selection, completeness, correctness, or application of any notes produced by this tool.
+        By using this generator, you agree that you are solely responsible for reviewing, editing, and applying
+        the content in accordance with all applicable codes, standards, and local requirements.
+      </p>
+      <p>
+        This tool is provided as a separate, stand-alone resource and is not part of any professional services
+        or project-specific deliverables associated with The Structural Engineering Podcast or its contributors.
+      </p>
+    </section>
+
+    <section class="card controls">
+      <h2>
+        Choose Sections
+        <span class="tag">Toggle materials &amp; topics</span>
+      </h2>
+      <p class="output-subtitle">
+        Uncheck anything your project doesn’t use (for example, no masonry on a small steel-framed retrofit).
+      </p>
+
+      <div class="section-grid">
+        <label class="checkbox-pill">
+          <input type="checkbox" id="chk-general" checked />
+          <span>A. General requirements</span>
+        </label>
+        <label class="checkbox-pill">
+          <input type="checkbox" id="chk-codes" checked />
+          <span>B. Codes &amp; design criteria</span>
+        </label>
+        <label class="checkbox-pill">
+          <input type="checkbox" id="chk-qa" checked />
+          <span>C. QA / testing / special inspections</span>
+        </label>
+        <label class="checkbox-pill">
+          <input type="checkbox" id="chk-geotech" checked />
+          <span>D. Geotechnical &amp; foundations</span>
+        </label>
+        <label class="checkbox-pill">
+          <input type="checkbox" id="chk-concrete" checked />
+          <span>E. Cast-in-place concrete</span>
+        </label>
+        <label class="checkbox-pill">
+          <input type="checkbox" id="chk-masonry" checked />
+          <span>F. Structural masonry</span>
+        </label>
+        <label class="checkbox-pill">
+          <input type="checkbox" id="chk-steel" checked />
+          <span>G. Structural steel</span>
+        </label>
+        <label class="checkbox-pill">
+          <input type="checkbox" id="chk-deck-cfs" checked />
+          <span>H. Metal deck &amp; cold-formed steel</span>
+        </label>
+        <label class="checkbox-pill">
+          <input type="checkbox" id="chk-wood" checked />
+          <span>I. Wood &amp; mass timber</span>
+        </label>
+        <label class="checkbox-pill">
+          <input type="checkbox" id="chk-submittals" checked />
+          <span>J. Submittals &amp; delegated design</span>
+        </label>
+        <label class="checkbox-pill">
+          <input type="checkbox" id="chk-construction-loads" checked />
+          <span>K. Construction loads &amp; temporary conditions</span>
+        </label>
+      </div>
+
+      <label class="inline-option">
+        <input type="checkbox" id="chk-include-disclaimer" checked />
+        <span>Include a short disclaimer at the top of the generated text.</span>
+      </label>
+
+      <div class="button-row">
+        <button class="primary" id="btn-generate" type="button">
+          🔧 Generate Notes
+        </button>
+        <button class="secondary" id="btn-copy" type="button">
+          📋 Copy to clipboard
+        </button>
+      </div>
+    </section>
+
+    <section class="card output">
+      <h2>Generated Notes</h2>
+      <p class="output-subtitle">
+        This is plain text. After generating, copy it into your drafting software, Word template,
+        or CAD/BIM general-notes sheet and adapt as needed.
+      </p>
+      <textarea id="output" readonly></textarea>
+      <div class="copy-status" id="copy-status" aria-live="polite"></div>
+    </section>
+
+    <footer>
+      Structural General Notes Generator – provided as-is, with no warranty or guarantee.
+    </footer>
+  </div>
+
+  <script>
+    const disclaimerBlock = `DISCLAIMER
 =========
 This generic note set is provided for educational and drafting convenience only. It is not project-specific engineering, does not create an Engineer-of-Record or client relationship, and is not a substitute for review and approval by a licensed Professional Engineer familiar with the project, codes, and jurisdiction. The Structural Engineering Podcast, its hosts, and contributors assume no responsibility for any use, modification, or omission of these notes.
 
 `;
 
-  const sections = [
-    {
-      id: "general",
-      checkboxId: "chk-general",
-      heading: "A. GENERAL REQUIREMENTS & GOVERNING DOCUMENTS",
-      body: `
+    const sections = [
+      {
+        id: "general",
+        checkboxId: "chk-general",
+        heading: "A. GENERAL REQUIREMENTS & GOVERNING DOCUMENTS",
+        body: `
 THESE STRUCTURAL DRAWINGS ARE PART OF THE CONTRACT DOCUMENTS AND SHALL BE USED IN CONJUNCTION WITH THE ARCHITECTURAL, CIVIL, MECHANICAL, ELECTRICAL, PLUMBING, FIRE PROTECTION, AND PROJECT MANUAL/SPECIFICATIONS. WHERE DISCREPANCIES EXIST BETWEEN DISCIPLINES, NOTIFY THE STRUCTURAL ENGINEER OF RECORD (SER) FOR CLARIFICATION PRIOR TO PROCEEDING WITH THE AFFECTED WORK. DO NOT SCALE DRAWINGS.
 
 THE CONTRACTOR SHALL VERIFY ALL EXISTING CONDITIONS, DIMENSIONS, AND ELEVATIONS IN THE FIELD PRIOR TO FABRICATION OR CONSTRUCTION. CONFLICTING, MISSING, OR UNCLEAR INFORMATION SHALL BE BROUGHT TO THE ATTENTION OF THE SER BEFORE WORK PROCEEDS.
@@ -27,12 +388,12 @@ COORDINATE OPENINGS, SLEEVES, BLOCKOUTS, AND EMBEDDED ITEMS REQUIRED BY OTHER TR
 
 ALL WORK SHALL COMPLY WITH APPLICABLE FEDERAL, STATE, AND LOCAL SAFETY REGULATIONS (INCLUDING OSHA) AND THE OWNER’S SAFETY POLICIES. THE CONTRACTOR IS RESPONSIBLE FOR JOBSITE SAFETY AND FOR PROTECTING ADJACENT STRUCTURES, UTILITIES, AND THE PUBLIC.
 `.trim()
-    },
-    {
-      id: "codes",
-      checkboxId: "chk-codes",
-      heading: "B. CODES, STANDARDS, AND DESIGN CRITERIA",
-      body: `
+      },
+      {
+        id: "codes",
+        checkboxId: "chk-codes",
+        heading: "B. CODES, STANDARDS, AND DESIGN CRITERIA",
+        body: `
 DESIGN CODES / STANDARDS
 ------------------------
 
@@ -86,12 +447,12 @@ FROST DEPTH: ______ INCHES MINIMUM BELOW EXTERIOR GRADE, OR AS REQUIRED BY LOCAL
 
 LATERAL EARTH PRESSURES, FRICTION COEFFICIENTS, AND OTHER SOIL PARAMETERS USED FOR DESIGN SHALL BE INDICATED ON THE DRAWINGS AND SHALL BE CONSISTENT WITH THE GEOTECHNICAL REPORT.
 `.trim()
-    },
-    {
-      id: "qa",
-      checkboxId: "chk-qa",
-      heading: "C. QUALITY ASSURANCE, TESTING, AND SPECIAL INSPECTIONS",
-      body: `
+      },
+      {
+        id: "qa",
+        checkboxId: "chk-qa",
+        heading: "C. QUALITY ASSURANCE, TESTING, AND SPECIAL INSPECTIONS",
+        body: `
 SPECIAL INSPECTIONS AND STRUCTURAL TESTS SHALL BE PROVIDED IN ACCORDANCE WITH IBC CHAPTER 17, THE ADOPTED BUILDING CODE, AND THE STATEMENT OF SPECIAL INSPECTIONS (SSI) PREPARED BY THE REGISTERED DESIGN PROFESSIONAL IN RESPONSIBLE CHARGE (RDPIRC) AND APPROVED BY THE BUILDING OFFICIAL.
 
 THE STATEMENT OF SPECIAL INSPECTIONS AND ANY ASSOCIATED SCHEDULES (STEEL, CONCRETE, MASONRY, WOOD, SOILS, DEEP FOUNDATIONS, SPRAYED FIRE-RESISTIVE MATERIALS, FIRE-RESISTANT PENETRATIONS, ETC.) SHALL BE INCLUDED IN THE CONSTRUCTION DOCUMENTS OR SUBMITTED SEPARATELY, AS REQUIRED BY THE JURISDICTION.
@@ -106,12 +467,12 @@ A FINAL REPORT OF SPECIAL INSPECTIONS, SEALED AS REQUIRED BY THE BUILDING OFFICI
 
 OBSERVATION OF CONSTRUCTION BY THE SER OR THEIR REPRESENTATIVES IS FOR GENERAL CONFORMANCE WITH DESIGN INTENT AND DOES NOT CONSTITUTE CONTINUOUS INSPECTION, SPECIAL INSPECTION, OR SUPERVISION OF THE CONTRACTOR’S MEANS AND METHODS.
 `.trim()
-    },
-    {
-      id: "geotech",
-      checkboxId: "chk-geotech",
-      heading: "D. GEOTECHNICAL INFORMATION, EARTHWORK, AND FOUNDATIONS",
-      body: `
+      },
+      {
+        id: "geotech",
+        checkboxId: "chk-geotech",
+        heading: "D. GEOTECHNICAL INFORMATION, EARTHWORK, AND FOUNDATIONS",
+        body: `
 FOUNDATIONS ARE DESIGNED BASED ON THE SITE-SPECIFIC GEOTECHNICAL REPORT IDENTIFIED IN SECTION B. THE CONTRACTOR SHALL REVIEW AND COMPLY WITH ALL RECOMMENDATIONS THEREIN RELATED TO EXCAVATION, FILL, COMPACTION, GROUNDWATER CONTROL, AND FOUNDATION CONSTRUCTION.
 
 SUBGRADE PREPARATION SHALL INCLUDE STRIPPING TOPSOIL, ORGANICS, DEBRIS, LOOSE, SOFT, SATURATED, EXPANSIVE, OR OTHERWISE UNSUITABLE MATERIAL FROM ALL FOUNDATION AND SLAB SUPPORT AREAS. SUBGRADES SHALL BE PROOF-ROLLED AND ANY UNSUITABLE MATERIAL REPLACED WITH COMPACTED STRUCTURAL FILL IN ACCORDANCE WITH THE GEOTECHNICAL REPORT.
@@ -126,12 +487,12 @@ BOTTOM OF EXTERIOR FOOTING ELEVATIONS SHALL BE AT OR BELOW THE CODE-REQUIRED FRO
 
 RETAINING WALLS, BASEMENT WALLS, AND OTHER EARTH-RETAINING STRUCTURES SHALL BE BACKFILLED WITH SUITABLE MATERIALS AND DRAINED PER THE GEOTECHNICAL REPORT AND STRUCTURAL DETAILS. DO NOT PLACE BACKFILL AGAINST WALLS UNTIL CONCRETE HAS ACHIEVED SUFFICIENT STRENGTH AND REQUIRED STRUCTURAL BRACING IS IN PLACE.
 `.trim()
-    },
-    {
-      id: "concrete",
-      checkboxId: "chk-concrete",
-      heading: "E. CAST-IN-PLACE CONCRETE",
-      body: `
+      },
+      {
+        id: "concrete",
+        checkboxId: "chk-concrete",
+        heading: "E. CAST-IN-PLACE CONCRETE",
+        body: `
 CONCRETE DESIGN AND CONSTRUCTION SHALL CONFORM TO ACI 318 AND ACI 301, AS MODIFIED BY THE ADOPTED BUILDING CODE AND PROJECT SPECIFICATIONS.
 
 CONCRETE COMPRESSIVE STRENGTHS AT 28 DAYS, f'c, SHALL BE AS INDICATED ON THE DRAWINGS FOR FOUNDATIONS, SLABS-ON-GRADE, ELEVATED SLABS, WALLS, BEAMS, COLUMNS, AND TOPPINGS. A CONCRETE MIX SCHEDULE SHALL IDENTIFY STRENGTH, MAXIMUM AGGREGATE SIZE, SLUMP, AIR CONTENT, AND ADMIXTURES FOR EACH MIX.
@@ -150,12 +511,12 @@ POST-INSTALLED ANCHORS IN HARDENED CONCRETE SHALL CONFORM TO APPROVED EVALUATION
 
 SLABS, BEAMS, AND SHORING SHALL NOT BE OVERLOADED WITH CONSTRUCTION LOADS BEYOND THE CAPACITY OF THE PARTIALLY COMPLETED STRUCTURE. SHORING AND RESHORING SHALL BE DESIGNED BY THE CONTRACTOR AS REQUIRED BY THE CONSTRUCTION SEQUENCE.
 `.trim()
-    },
-    {
-      id: "masonry",
-      checkboxId: "chk-masonry",
-      heading: "F. STRUCTURAL MASONRY",
-      body: `
+      },
+      {
+        id: "masonry",
+        checkboxId: "chk-masonry",
+        heading: "F. STRUCTURAL MASONRY",
+        body: `
 STRUCTURAL MASONRY DESIGN SHALL CONFORM TO TMS 402, AND MASONRY CONSTRUCTION SHALL CONFORM TO TMS 602, AS ADOPTED BY THE GOVERNING BUILDING CODE.
 
 CONCRETE MASONRY UNITS (CMU) SHALL CONFORM TO ASTM C90 (LOADBEARING UNITS) UNLESS OTHERWISE SPECIFIED. CLAY MASONRY UNITS SHALL CONFORM TO APPLICABLE ASTM STANDARDS AS NOTED ON THE DRAWINGS OR IN THE SPECIFICATIONS.
@@ -174,12 +535,12 @@ CONTROL JOINTS, EXPANSION JOINTS, AND MOVEMENT JOINTS IN MASONRY SHALL BE LOCATE
 
 ANCHORAGE OF MASONRY VENEERS, TIES TO BACKUP WALLS, AND OUT-OF-PLANE BRACING OF TALL MASONRY WALLS SHALL BE PROVIDED AS INDICATED ON THE DRAWINGS.
 `.trim()
-    },
-    {
-      id: "steel",
-      checkboxId: "chk-steel",
-      heading: "G. STRUCTURAL STEEL",
-      body: `
+      },
+      {
+        id: "steel",
+        checkboxId: "chk-steel",
+        heading: "G. STRUCTURAL STEEL",
+        body: `
 STRUCTURAL STEEL DESIGN SHALL CONFORM TO AISC 360, AND DETAILING AND FABRICATION SHALL CONFORM TO AISC 303. WHERE APPLICABLE, SEISMIC-FORCE-RESISTING SYSTEMS SHALL CONFORM TO AISC 341 AND AISC 358.
 
 UNLESS NOTED OTHERWISE, STRUCTURAL STEEL MATERIALS SHALL CONFORM TO:
@@ -206,12 +567,12 @@ BASE PLATES AND ANCHOR RODS SHALL BE SET USING LEVELING DEVICES, SHIMS, OR LEVEL
 
 STEEL SURFACES EXPOSED TO WEATHER OR CORROSIVE ENVIRONMENTS SHALL RECEIVE GALVANIZING OR OTHER PROTECTIVE COATINGS AS INDICATED ON THE DRAWINGS OR IN THE SPECIFICATIONS. STEEL ENCASED IN CONCRETE OR PLACED BELOW GRADE SHALL RECEIVE BITUMINOUS OR OTHER PROTECTIVE COATINGS WHERE REQUIRED.
 `.trim()
-    },
-    {
-      id: "deck-cfs",
-      checkboxId: "chk-deck-cfs",
-      heading: "H. METAL DECK AND COLD-FORMED STEEL FRAMING",
-      body: `
+      },
+      {
+        id: "deck-cfs",
+        checkboxId: "chk-deck-cfs",
+        heading: "H. METAL DECK AND COLD-FORMED STEEL FRAMING",
+        body: `
 METAL ROOF AND FLOOR DECK SHALL CONFORM TO STEEL DECK INSTITUTE (SDI) DESIGN MANUALS AND PROJECT SPECIFICATIONS. DECK PROFILES, GAGES, AND SPANS SHALL BE AS INDICATED ON THE DRAWINGS.
 
 METAL DECK BASE MATERIAL SHALL BE STRUCTURAL-QUALITY SHEET STEEL CONFORMING TO ASTM A653 WITH MINIMUM G60 GALVANIZED COATING (OR AS SPECIFIED), OF THE GRADE INDICATED.
@@ -226,12 +587,12 @@ BRACING AND BRIDGING FOR COLD-FORMED STUDS AND JOISTS SHALL BE INSTALLED IN ACCO
 
 DELEGATED COLD-FORMED STEEL DESIGN (E.G., CURTAIN WALL STUDS, COLD-FORMED TRUSSES, JOISTS) SHALL BE PERFORMED BY A PROFESSIONAL ENGINEER LICENSED IN THE PROJECT STATE. CALCULATIONS AND SHOP DRAWINGS SHALL BE SUBMITTED FOR SER REVIEW.
 `.trim()
-    },
-    {
-      id: "wood",
-      checkboxId: "chk-wood",
-      heading: "I. WOOD AND MASS TIMBER FRAMING",
-      body: `
+      },
+      {
+        id: "wood",
+        checkboxId: "chk-wood",
+        heading: "I. WOOD AND MASS TIMBER FRAMING",
+        body: `
 WOOD DESIGN SHALL CONFORM TO THE NATIONAL DESIGN SPECIFICATION (NDS) FOR WOOD CONSTRUCTION AND APPLICABLE SUPPLEMENTS, INCLUDING SDPWS FOR LATERAL SYSTEMS, AS ADOPTED BY THE GOVERNING BUILDING CODE.
 
 DIMENSION LUMBER SHALL BE VISUALLY GRADED OR MACHINE STRESS-RATED (MSR) OF THE SPECIES AND GRADE INDICATED. ENGINEERED WOOD PRODUCTS (LVL, PSL, LSL, I-JOISTS, GLULAM, CLT) SHALL BE FROM MANUFACTURERS WITH PUBLISHED DESIGN VALUES RECOGNIZED BY THE ADOPTED BUILDING CODE.
@@ -250,12 +611,12 @@ PREFABRICATED WOOD TRUSSES SHALL BE DESIGNED, DETAILED, FABRICATED, AND BRACED I
 
 WOOD SHEAR WALLS AND DIAPHRAGMS SHALL BE SHEATHED, NAILED, AND BLOCKED IN ACCORDANCE WITH SDPWS AND THE SHEAR WALL/DIAPHRAGM SCHEDULES ON THE DRAWINGS. DO NOT CHANGE SHEATHING TYPE, THICKNESS, OR NAILING PATTERNS WITHOUT SER APPROVAL.
 `.trim()
-    },
-    {
-      id: "submittals",
-      checkboxId: "chk-submittals",
-      heading: "J. SUBMITTALS AND DELEGATED DESIGN ITEMS",
-      body: `
+      },
+      {
+        id: "submittals",
+        checkboxId: "chk-submittals",
+        heading: "J. SUBMITTALS AND DELEGATED DESIGN ITEMS",
+        body: `
 THE CONTRACTOR SHALL SUBMIT SHOP DRAWINGS, PRODUCT DATA, AND ENGINEERING CALCULATIONS FOR STRUCTURAL ITEMS AS REQUIRED BY THE CONTRACT DOCUMENTS AND THESE NOTES. SUBMITTALS SHALL BE REVIEWED BY THE CONTRACTOR FOR COMPLETENESS, COORDINATION, AND COMPLIANCE PRIOR TO FORWARDING TO THE SER.
 
 DELEGATED DESIGN ITEMS REQUIRING SEALED CALCULATIONS AND DRAWINGS BY A PROFESSIONAL ENGINEER LICENSED IN THE PROJECT STATE TYPICALLY INCLUDE, WHERE APPLICABLE: STRUCTURAL STEEL CONNECTIONS, COLD-FORMED STEEL FRAMING SYSTEMS, WOOD TRUSSES, STAIRS AND RAILINGS, PRE-ENGINEERED METAL BUILDINGS, PROPRIETARY ANCHORING SYSTEMS, AND OTHER SPECIALTY STRUCTURAL COMPONENTS IDENTIFIED ON THE DRAWINGS OR IN THE SPECIFICATIONS.
@@ -264,7 +625,7 @@ SUBMITTALS FOR CONCRETE SHALL INCLUDE MIX DESIGNS, REINFORCING SHOP DRAWINGS, AN
 
 SUBMITTALS FOR STRUCTURAL STEEL SHALL INCLUDE MEMBER AND CONNECTION SHOP DRAWINGS, CONNECTION DESIGN CALCULATIONS WHERE REQUIRED, COATING SYSTEM DATA, AND FABRICATION DETAILS FOR STAIRS, HANDRAILS, AND MISCELLANEOUS METALS THAT RELY ON STRUCTURAL SUPPORT.
 
-SUBMITTALS FOR WOOD FRAMING SHALL INCLUDE ENGINEERED WOOD PRODUCT DATA (LVL, PSL, I-JOISTS, GLULAM, CLT), TRUSS SHOP DRAWINGS AND CALCULATIONS, AND HARDWARE SCHEDULES FOR HOLDOWNS, STRAPS, AND CONNECTORS.
+SUBMITTALS FOR WOOD FRAMING SHALL INCLUDE ENGINEERED WOOD PRODUCT DATA (LVL, PSL, I-JOISTS, GLULAM, CLT), TRUSS SHOP DRAWINGS AND CALCULATIONS, AND HARDWARE SCHEDULES FOR HOLDDOWNS, STRAPS, AND CONNECTORS.
 
 SUBMITTALS FOR MASONRY SHALL INCLUDE UNIT DATA, PRISM TEST PROCEDURES OR UNIT STRENGTH VERIFICATION, REINFORCING AND GROUT PLACEMENT DETAILS, AND ACCESSORIES SUCH AS TIES, ANCHORS, AND JOINT REINFORCEMENT.
 
@@ -272,12 +633,12 @@ SUBMITTALS FOR COLD-FORMED STEEL FRAMING SHALL INCLUDE MEMBER AND CONNECTION DET
 
 THE SER’S REVIEW OF SUBMITTALS IS FOR GENERAL CONFORMANCE WITH THE DESIGN INTENT AND DOES NOT RELIEVE THE CONTRACTOR OR DELEGATED-DESIGN PROFESSIONAL ENGINEER FROM RESPONSIBILITY FOR THE ADEQUACY AND COMPLETENESS OF THEIR DESIGN.
 `.trim()
-    },
-    {
-      id: "construction-loads",
-      checkboxId: "chk-construction-loads",
-      heading: "K. CONSTRUCTION LOADS, TEMPORARY CONDITIONS, AND COORDINATION",
-      body: `
+      },
+      {
+        id: "construction-loads",
+        checkboxId: "chk-construction-loads",
+        heading: "K. CONSTRUCTION LOADS, TEMPORARY CONDITIONS, AND COORDINATION",
+        body: `
 THE STRUCTURE SHALL NOT BE LOADED DURING CONSTRUCTION IN A MANNER THAT RESULTS IN MEMBER FORCES OR DEFLECTIONS EXCEEDING THOSE ASSUMED IN DESIGN. THE CONTRACTOR SHALL PROVIDE SHORING AND TEMPORARY SUPPORTS WHERE REQUIRED TO ACCOMMODATE CONSTRUCTION LOADS, EQUIPMENT, AND MATERIAL STOCKPILES.
 
 SHORING AND RESHORING OF CONCRETE SLABS, BEAMS, AND OTHER ELEMENTS SHALL BE DESIGNED BY THE CONTRACTOR OR A QUALIFIED PROFESSIONAL ENGINEER WHERE REQUIRED BY THE CONSTRUCTION SEQUENCE. SHORES SHALL NOT BE REMOVED UNTIL CONCRETE HAS ATTAINED SUFFICIENT STRENGTH TO SUPPORT ITS OWN WEIGHT PLUS CONSTRUCTION LOADS.
@@ -290,67 +651,69 @@ EXISTING STRUCTURES, UTILITIES, AND IMPROVEMENTS SHALL BE PROTECTED FROM DAMAGE 
 
 PRIOR TO CORING, CUTTING, OR REMOVING PORTIONS OF EXISTING STRUCTURAL MEMBERS OR SLABS, PROPOSED LOCATIONS AND METHODS SHALL BE SUBMITTED TO THE SER FOR REVIEW, INCLUDING ANY REQUIRED STRENGTHENING OR FRAMING MODIFICATIONS.
 `.trim()
-    }
-  ];
-
-  function buildNotes() {
-    const includeDisclaimer = document.getElementById("chk-include-disclaimer").checked;
-    let text = "";
-
-    if (includeDisclaimer) {
-      text += disclaimerBlock + "\n";
-    }
-
-    sections.forEach(section => {
-      const cb = document.getElementById(section.checkboxId);
-      if (cb && cb.checked) {
-        text += section.heading + "\n";
-        text += "-".repeat(section.heading.length) + "\n\n";
-        text += section.body + "\n\n\n";
       }
-    });
+    ];
 
-    if (text.trim() === "") {
-      text = "No sections selected. Please choose at least one section above.";
-    }
+    function buildNotes() {
+      const includeDisclaimer = document.getElementById("chk-include-disclaimer").checked;
+      let text = "";
 
-    const output = document.getElementById("output");
-    output.value = text;
-    const status = document.getElementById("copy-status");
-    status.textContent = "";
-    status.className = "copy-status";
-  }
-
-  async function copyNotes() {
-    const output = document.getElementById("output");
-    const status = document.getElementById("copy-status");
-    const text = output.value;
-
-    if (!text || !text.trim()) {
-      status.textContent = "Nothing to copy. Generate notes first.";
-      status.className = "copy-status error";
-      return;
-    }
-
-    try {
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        await navigator.clipboard.writeText(text);
-      } else {
-        output.focus();
-        output.select();
-        document.execCommand("copy");
+      if (includeDisclaimer) {
+        text += disclaimerBlock + "\n";
       }
-      status.textContent = "Copied to clipboard. Paste into your project file and edit as needed.";
-      status.className = "copy-status success";
-    } catch (err) {
-      status.textContent = "Could not copy automatically. Select the text above and copy it manually (Ctrl+C / Cmd+C).";
-      status.className = "copy-status error";
+
+      sections.forEach(section => {
+        const cb = document.getElementById(section.checkboxId);
+        if (cb && cb.checked) {
+          text += section.heading + "\n";
+          text += "-".repeat(section.heading.length) + "\n\n";
+          text += section.body + "\n\n\n";
+        }
+      });
+
+      if (text.trim() === "") {
+        text = "No sections selected. Please choose at least one section above.";
+      }
+
+      const output = document.getElementById("output");
+      output.value = text;
+      const status = document.getElementById("copy-status");
+      status.textContent = "";
+      status.className = "copy-status";
     }
-  }
 
-  document.getElementById("btn-generate").addEventListener("click", buildNotes);
-  document.getElementById("btn-copy").addEventListener("click", copyNotes);
+    async function copyNotes() {
+      const output = document.getElementById("output");
+      const status = document.getElementById("copy-status");
+      const text = output.value;
 
-  // Build default notes on load
-  buildNotes();
-</script>
+      if (!text || !text.trim()) {
+        status.textContent = "Nothing to copy. Generate notes first.";
+        status.className = "copy-status error";
+        return;
+      }
+
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(text);
+        } else {
+          output.focus();
+          output.select();
+          document.execCommand("copy");
+        }
+        status.textContent = "Copied to clipboard. Paste into your project file and edit as needed.";
+        status.className = "copy-status success";
+      } catch (err) {
+        status.textContent = "Could not copy automatically. Select the text above and copy it manually (Ctrl+C / Cmd+C).";
+        status.className = "copy-status error";
+      }
+    }
+
+    document.getElementById("btn-generate").addEventListener("click", buildNotes);
+    document.getElementById("btn-copy").addEventListener("click", copyNotes);
+
+    // Build default notes on load
+    buildNotes();
+  </script>
+</body>
+</html>
