@@ -1,578 +1,494 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8" />
-  <title>Seismic Design Helper – ASCE 7 Ch.12 (Educational)</title>
+  <title>Seismic Base Shear Helper (ASCE 7)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
+    :root {
+      --bg: #f5f5f7;
+      --card-bg: #ffffff;
+      --border: #d0d0d5;
+      --accent: #1f6feb;
+      --accent-soft: rgba(31, 111, 235, 0.08);
+      --text-main: #111827;
+      --text-muted: #4b5563;
+      --danger: #b91c1c;
+      --radius-lg: 16px;
+      --radius-md: 10px;
+      --shadow-soft: 0 14px 30px rgba(15, 23, 42, 0.08);
+    }
+
+    * { box-sizing: border-box; }
+
     body {
+      margin: 0;
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      margin: 0;
-      padding: 0;
-      background: #f4f4f7;
-      color: #222;
+      background: radial-gradient(circle at top, #e5edff 0, #f5f5f7 55%);
+      color: var(--text-main);
     }
+
+    .app {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 2.5rem 1rem 3rem;
+    }
+
     header {
-      background: #1f3a93;
-      color: #fff;
-      padding: 1rem 1.5rem;
+      margin-bottom: 1.75rem;
+      text-align: left;
     }
+
     header h1 {
-      margin: 0;
-      font-size: 1.4rem;
+      margin: 0 0 0.4rem;
+      font-size: 1.9rem;
+      letter-spacing: 0.03em;
     }
+
     header p {
-      margin: 0.3rem 0 0;
-      font-size: 0.9rem;
-      opacity: 0.9;
-    }
-    main {
-      max-width: 1100px;
-      margin: 1.5rem auto 2rem;
-      padding: 0 1rem;
-    }
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-      gap: 1rem;
-    }
-    .card {
-      background: #fff;
-      border-radius: 0.5rem;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
-      padding: 1rem 1.25rem 1.25rem;
-    }
-    .card h2 {
-      margin-top: 0;
-      font-size: 1.1rem;
-      border-bottom: 1px solid #e3e3ea;
-      padding-bottom: 0.4rem;
-    }
-    .field {
-      margin-bottom: 0.55rem;
-    }
-    .field label {
-      display: block;
-      font-size: 0.88rem;
-      margin-bottom: 0.15rem;
-    }
-    .field input,
-    .field select,
-    .field textarea {
-      width: 100%;
-      box-sizing: border-box;
-      padding: 0.35rem 0.4rem;
-      border-radius: 0.3rem;
-      border: 1px solid #cfd2e3;
-      font-size: 0.9rem;
-    }
-    .field small {
-      display: block;
-      font-size: 0.75rem;
-      color: #666;
-      margin-top: 0.1rem;
-    }
-    .inline {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 0.5rem;
-    }
-    button {
-      padding: 0.45rem 0.9rem;
-      border-radius: 0.35rem;
-      border: none;
-      background: #1f3a93;
-      color: #fff;
+      margin: 0;
+      color: var(--text-muted);
+      max-width: 720px;
       font-size: 0.95rem;
-      cursor: pointer;
-      margin-right: 0.4rem;
     }
-    button.secondary {
-      background: #555;
+
+    .card {
+      background: var(--card-bg);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-soft);
+      padding: 1.4rem 1.5rem 1.7rem;
+      margin-bottom: 1.4rem;
+      border: 1px solid rgba(148,163,184,0.3);
     }
-    button:disabled {
-      opacity: 0.6;
-      cursor: default;
+
+    .card h2 {
+      margin: 0 0 0.7rem;
+      font-size: 1.2rem;
     }
-    #results {
-      font-size: 0.9rem;
-      line-height: 1.4;
+
+    .sub {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin: 0 0 0.6rem;
     }
-    #results h3 {
-      margin-top: 0;
-      font-size: 1rem;
-      border-bottom: 1px solid #e3e3ea;
-      padding-bottom: 0.3rem;
-    }
-    #seismicNotes {
-      min-height: 9rem;
-      font-family: "Consolas", "SF Mono", Menlo, monospace;
-      white-space: pre-wrap;
-    }
+
     .disclaimer {
-      font-size: 0.75rem;
-      color: #555;
-      margin-top: 0.8rem;
-      line-height: 1.35;
+      border-left: 4px solid var(--danger);
+      background: #fef2f2;
+      color: #7f1d1d;
+      font-size: 0.9rem;
     }
-    .chip {
+
+    .disclaimer strong {
       display: inline-block;
-      background: #eef1fb;
-      color: #1f3a93;
-      padding: 0.15rem 0.45rem;
-      border-radius: 999px;
-      font-size: 0.78rem;
-      margin-right: 0.25rem;
       margin-bottom: 0.25rem;
     }
-    @media (max-width: 700px) {
-      header h1 {
-        font-size: 1.1rem;
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+      gap: 0.6rem 1rem;
+      margin-top: 0.4rem;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      font-size: 0.85rem;
+    }
+
+    .field label {
+      margin-bottom: 0.14rem;
+      color: var(--text-muted);
+    }
+
+    .field input,
+    .field select {
+      padding: 0.35rem 0.45rem;
+      border-radius: 8px;
+      border: 1px solid #d1d5db;
+      background: #f9fafb;
+      font-size: 0.85rem;
+    }
+
+    .field input:focus,
+    .field select:focus {
+      outline: 2px solid var(--accent);
+      outline-offset: 1px;
+      background: #ffffff;
+    }
+
+    .inline-radio {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.8rem;
+      font-size: 0.8rem;
+      margin-top: 0.1rem;
+      color: var(--text-muted);
+    }
+
+    .inline-radio label {
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+      cursor: pointer;
+    }
+
+    .button-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.65rem;
+      margin-top: 0.9rem;
+    }
+
+    button {
+      border-radius: 999px;
+      border: none;
+      padding: 0.55rem 1.15rem;
+      font-size: 0.92rem;
+      font-weight: 500;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      white-space: nowrap;
+    }
+
+    button.primary {
+      background: var(--accent);
+      color: #ffffff;
+      box-shadow: 0 10px 18px rgba(31,111,235,0.35);
+    }
+
+    button.secondary {
+      background: #e5e7eb;
+      color: #111827;
+    }
+
+    button:active {
+      transform: translateY(1px);
+      box-shadow: none;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 260px;
+      font-family: "SF Mono", ui-monospace, Menlo, Consolas, monospace;
+      font-size: 0.86rem;
+      line-height: 1.5;
+      padding: 0.9rem;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border);
+      background: #0f172a;
+      color: #e5e7eb;
+      box-shadow: inset 0 0 0 1px rgba(15,23,42,0.8);
+      resize: vertical;
+    }
+
+    textarea:focus {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    .copy-status {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-top: 0.35rem;
+      min-height: 1em;
+    }
+
+    .copy-status.success { color: #059669; }
+    .copy-status.error { color: var(--danger); }
+
+    footer {
+      margin-top: 1rem;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      text-align: right;
+    }
+
+    @media (max-width: 640px) {
+      .app { padding-inline: 0.8rem; }
+      header h1 { font-size: 1.6rem; }
+      button.primary,
+      button.secondary {
+        flex: 1 1 auto;
+        justify-content: center;
       }
     }
-      /* ...your existing styles... */
 
-  .top-nav {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    margin-bottom: 1rem;
-    padding: 0.5rem 0.75rem;
-    border-radius: 999px;
-    background: rgba(15, 23, 42, 0.03);
-    border: 1px solid rgba(148, 163, 184, 0.4);
-  }
+    /* Top navigation linking the tools */
+    .top-nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 1.2rem;
+      padding: 0.5rem 0.75rem;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.03);
+      border: 1px solid rgba(148, 163, 184, 0.4);
+    }
 
-  .top-nav a {
-    font-size: 0.85rem;
-    padding: 0.35rem 0.85rem;
-    border-radius: 999px;
-    text-decoration: none;
-    color: #111827;
-    background: #ffffff;
-    border: 1px solid rgba(148, 163, 184, 0.6);
-  }
+    .top-nav a {
+      font-size: 0.85rem;
+      padding: 0.35rem 0.85rem;
+      border-radius: 999px;
+      text-decoration: none;
+      color: #111827;
+      background: #ffffff;
+      border: 1px solid rgba(148, 163, 184, 0.6);
+    }
 
-  .top-nav a:hover {
-    background: #e5edff;
-    border-color: #1f6feb;
-  }
+    .top-nav a:hover {
+      background: #e5edff;
+      border-color: #1f6feb;
+    }
 
-  .top-nav a.current {
-    background: #1f6feb;
-    color: #ffffff;
-    border-color: #1f6feb;
-  }
+    .top-nav a.current {
+      background: #1f6feb;
+      color: #ffffff;
+      border-color: #1f6feb;
+    }
   </style>
 </head>
 <body>
-<header>
-  <h1>Seismic Design Helper (ASCE 7 Ch.12 – Educational)</h1>
-  <p>Pick a seismic force-resisting system, compute Cs and base shear, and generate a seismic
-     general-notes snippet. Final values must be checked against the current ASCE 7 and building code.</p>
-</header>
+  <div class="app">
+    <nav class="top-nav">
+      <a href="index.html">General Notes</a>
+      <a href="seismic.html" class="current">Seismic Helper</a>
+      <a href="wind.html">Wind Helper</a>
+    </nav>
 
-<main>
-  <div class="grid">
-    <!-- PROJECT INFO -->
+    <header>
+      <h1>Seismic Base Shear Helper (ASCE 7)</h1>
+      <p>
+        Quick helper for Equivalent Lateral Force (ELF) calculations using ASCE 7-10/16/22 style parameters.
+        You still need to pull system values (R, C<sub>d</sub>, Ω<sub>0</sub>, C<sub>t</sub>, x, etc.) directly from ASCE 7.
+      </p>
+    </header>
+
+    <section class="card disclaimer">
+      <strong>Important – Not a design program</strong>
+      <p>
+        This tool is for educational and drafting convenience only. It is <u>not</u> project-specific engineering,
+        does not create an Engineer-of-Record or client relationship, and is not a substitute for design, review,
+        or code compliance checks by a licensed Professional Engineer familiar with the project, jurisdiction,
+        and applicable codes.
+      </p>
+      <p>
+        The Structural Engineering Podcast, its hosts, guests, and contributors assume no responsibility for the
+        completeness, correctness, or application of any values produced here. By using this helper you agree you
+        are solely responsible for verifying all inputs, formulas, and results against ASCE 7 and local amendments.
+      </p>
+    </section>
+
+    <!-- STEP 1: PROJECT + CODE -->
     <section class="card">
-      <h2>1. Project &amp; Code Info</h2>
-
-      <div class="field">
-        <label for="projectName">Project name</label>
-        <input id="projectName" type="text" placeholder="Example: Tomlinson House" />
-      </div>
-
-      <div class="field inline">
-        <div>
-          <label for="projectNumber">Project number</label>
-          <input id="projectNumber" type="text" placeholder="e.g., P22912" />
+      <h2>1. Project &amp; Code</h2>
+      <p class="sub">Basic identifiers plus which ASCE 7 edition and risk category you’re using.</p>
+      <div class="grid">
+        <div class="field">
+          <label for="projName">Project name</label>
+          <input id="projName" type="text" placeholder="Tomlinson House" />
         </div>
-        <div>
-          <label for="projectDate">Design date</label>
-          <input id="projectDate" type="text" placeholder="e.g., 2025-11-19" />
+        <div class="field">
+          <label for="projNumber">Project number</label>
+          <input id="projNumber" type="text" placeholder="P-2025-001" />
         </div>
-      </div>
-
-      <div class="field">
-        <label for="projectLocation">Location / Jurisdiction</label>
-        <input id="projectLocation" type="text" placeholder="City, State, Jurisdiction" />
-      </div>
-
-      <div class="field inline">
-        <div>
-          <label for="seismicCode">Seismic code basis</label>
-          <select id="seismicCode">
-            <option value="ASCE 7-16" selected>ASCE 7-16</option>
-            <option value="ASCE 7-22">ASCE 7-22</option>
+        <div class="field">
+          <label for="codeYear">Building code</label>
+          <input id="codeYear" type="text" placeholder="IBC 2018, local amendments" />
+        </div>
+        <div class="field">
+          <label for="asceEdition">ASCE 7 edition</label>
+          <select id="asceEdition">
+            <option value="">(select)</option>
             <option value="ASCE 7-10">ASCE 7-10</option>
-            <option value="Other / local amendment">Other / local amendment</option>
+            <option value="ASCE 7-16">ASCE 7-16</option>
+            <option value="ASCE 7-22">ASCE 7-22</option>
           </select>
         </div>
-        <div>
-          <label for="riskCategory">Risk category</label>
-          <select id="riskCategory">
-            <option value="II" selected>II</option>
+        <div class="field">
+          <label for="riskCat">Risk category</label>
+          <select id="riskCat">
+            <option value="">(select)</option>
             <option value="I">I</option>
+            <option value="II">II</option>
             <option value="III">III</option>
             <option value="IV">IV</option>
           </select>
         </div>
-      </div>
-
-      <div class="field inline">
-        <div>
-          <label for="importanceFactorIe">Importance factor, I<sub>e</sub></label>
-          <input id="importanceFactorIe" type="number" step="0.01" value="1.0" />
-          <small>Typical: 1.0 (RC I–II), 1.25 (RC III), 1.5 (RC IV).</small>
+        <div class="field">
+          <label for="Ie">Importance factor, I<sub>e</sub></label>
+          <input id="Ie" type="number" step="0.01" placeholder="1.0, 1.25, 1.5..." />
         </div>
-        <div>
+      </div>
+    </section>
+
+    <!-- STEP 2: HAZARD PARAMETERS -->
+    <section class="card">
+      <h2>2. Hazard parameters</h2>
+      <p class="sub">
+        Enter values from your USGS / hazard report. For ASCE 7-22 you can treat SDS/SD1 as the design spectral
+        accelerations S<sub>a</sub> at short period and 1-sec.
+      </p>
+      <div class="grid">
+        <div class="field">
           <label for="siteClass">Seismic site class</label>
           <select id="siteClass">
             <option value="">(select)</option>
-            <option value="A">A</option>
-            <option value="B">B</option>
-            <option value="C">C</option>
-            <option value="D" selected>D</option>
-            <option value="E">E</option>
-            <option value="F">F</option>
+            <option value="Site Class A">Site Class A</option>
+            <option value="Site Class B">Site Class B</option>
+            <option value="Site Class BC">Site Class BC</option>
+            <option value="Site Class C">Site Class C</option>
+            <option value="Site Class CD">Site Class CD</option>
+            <option value="Site Class D">Site Class D</option>
+            <option value="Site Class DE">Site Class DE</option>
+            <option value="Site Class E">Site Class E</option>
+            <option value="Site Class F">Site Class F</option>
           </select>
+          <div class="inline-radio">
+            <label><input type="radio" name="siteBasis" value="Geotechnical report" checked /> from geotechnical report</label>
+            <label><input type="radio" name="siteBasis" value="Assumed for preliminary design" /> assumed for preliminary design</label>
+          </div>
+        </div>
+        <div class="field">
+          <label for="Sds">SDS (short-period design accel, g)</label>
+          <input id="Sds" type="number" step="0.001" placeholder="e.g. 0.85" />
+        </div>
+        <div class="field">
+          <label for="Sd1">SD1 (1-sec design accel, g)</label>
+          <input id="Sd1" type="number" step="0.001" placeholder="e.g. 0.42" />
+        </div>
+        <div class="field">
+          <label for="S1">S<sub>1</sub> (mapped 1-sec MCER, g)</label>
+          <input id="S1" type="number" step="0.001" placeholder="e.g. 0.7" />
+        </div>
+        <div class="field">
+          <label for="Tl">T<sub>L</sub> (long-period transition, s)</label>
+          <input id="Tl" type="number" step="0.01" placeholder="e.g. 4.0" />
         </div>
       </div>
     </section>
 
-    <!-- HAZARD & SYSTEM -->
+    <!-- STEP 3: SYSTEM -->
     <section class="card">
-      <h2>2. Hazard &amp; System Parameters</h2>
-
-      <div class="field inline">
-        <div>
-          <label for="SDS">S<sub>DS</sub> (g)</label>
-          <input id="SDS" type="number" step="0.01" placeholder="e.g., 1.05" />
-        </div>
-        <div>
-          <label for="SD1">S<sub>D1</sub> (g)</label>
-          <input id="SD1" type="number" step="0.01" placeholder="e.g., 0.55" />
-        </div>
-      </div>
-
-      <div class="field">
-        <label for="S1">S<sub>1</sub> (g, for Eq. 12.8-6 check; optional)</label>
-        <input id="S1" type="number" step="0.01" placeholder="Enter S1 or leave blank" />
-      </div>
-
-      <div class="field">
-        <label for="systemSelect">Seismic force-resisting system (from ASCE 7 Table 12.2-1)</label>
-        <select id="systemSelect">
-          <option value="">(manual entry / other system)</option>
-          <optgroup label="Steel frames">
-            <option value="steel-smf">Steel special moment frames (SMF)</option>
-            <option value="steel-imf">Steel intermediate moment frames (IMF)</option>
-            <option value="steel-omf">Steel ordinary moment frames (OMF)</option>
-            <option value="steel-scbf">Steel special concentrically braced frames</option>
-            <option value="steel-ocbf">Steel ordinary concentrically braced frames</option>
-            <option value="steel-ebf">Steel eccentrically braced frames</option>
-          </optgroup>
-          <optgroup label="Concrete systems">
-            <option value="conc-smf">Special reinforced concrete moment frames</option>
-            <option value="conc-omf">Ordinary reinforced concrete moment frames</option>
-            <option value="conc-sw-special">Special reinforced concrete shear walls</option>
-            <option value="conc-sw-ordinary">Ordinary reinforced concrete shear walls</option>
-          </optgroup>
-          <optgroup label="Wood light-frame">
-            <option value="wood-wsp">Light-framed walls sheathed with wood structural panels</option>
-          </optgroup>
-          <optgroup label="Masonry">
-            <option value="rm-special">Special reinforced masonry shear walls</option>
-            <option value="rm-ordinary">Ordinary reinforced masonry shear walls</option>
-          </optgroup>
-          <!-- You can extend this with more systems as needed -->
-        </select>
-        <small>Only a subset of common systems is listed. Always verify R, C<sub>d</sub>, and Ω<sub>0</sub> against the current ASCE 7 table.</small>
-      </div>
-
-      <div class="field">
-        <label for="systemName">System description (will appear in report)</label>
-        <input id="systemName" type="text" placeholder="e.g., Steel special moment frames" />
-      </div>
-
-      <div class="field inline">
-        <div>
-          <label for="R">R (response modification factor)</label>
-          <input id="R" type="number" step="0.1" placeholder="e.g., 8.0" />
-        </div>
-        <div>
-          <label for="Cd">C<sub>d</sub> (deflection amplification)</label>
-          <input id="Cd" type="number" step="0.1" placeholder="e.g., 5.5" />
-        </div>
-      </div>
-
-      <div class="field inline">
-        <div>
-          <label for="Omega0">Ω<sub>0</sub> (overstrength factor)</label>
-          <input id="Omega0" type="number" step="0.1" placeholder="e.g., 3.0" />
-        </div>
-        <div>
-          <label for="T">Fundamental period, T (s)</label>
-          <input id="T" type="number" step="0.01" placeholder="e.g., 0.8" />
-          <small>For this simplified helper, T is used only for reporting and drift checks.</small>
-        </div>
-      </div>
-
-      <div class="field">
-        <label for="W">Effective seismic weight, W (kips or kN – be consistent)</label>
-        <input id="W" type="number" step="0.1" placeholder="e.g., 2500" />
-      </div>
-
-      <div class="field">
-        <button id="calcBtn" type="button">Calculate Cs &amp; Base Shear + Generate Notes</button>
-        <button id="copyNotesBtn" type="button" class="secondary" disabled>Copy Notes to Clipboard</button>
-      </div>
-
-      <p class="disclaimer">
-        This helper uses the standard Cs = S<sub>DS</sub> / (R / I<sub>e</sub>) expression with minimum checks
-        from ASCE 7 Sec. 12.8. Long-period limits, irregularities, torsion, redundancy, and other provisions
-        are not automated. Use only as a learning / pre-check tool; the engineer of record must verify all
-        criteria, system selection, and code compliance.
+      <h2>3. Seismic force-resisting system</h2>
+      <p class="sub">
+        Describe the system and enter R, C<sub>d</sub>, and Ω<sub>0</sub> from the appropriate ASCE 7 table
+        (e.g. Table 12.2-1 / 12.2-2). Use the exact wording from the table if you like.
       </p>
+      <div class="grid">
+        <div class="field">
+          <label for="systemName">System description (from ASCE 7 table)</label>
+          <input id="systemName" type="text" placeholder="e.g. Special steel moment frame" />
+        </div>
+        <div class="field">
+          <label for="R">R (response modification factor)</label>
+          <input id="R" type="number" step="0.1" placeholder="e.g. 8" />
+        </div>
+        <div class="field">
+          <label for="Cd">C<sub>d</sub> (deflection amplification)</label>
+          <input id="Cd" type="number" step="0.1" placeholder="e.g. 5.5" />
+        </div>
+        <div class="field">
+          <label for="Omega">Ω<sub>0</sub> (overstrength factor)</label>
+          <input id="Omega" type="number" step="0.1" placeholder="e.g. 3" />
+        </div>
+      </div>
     </section>
+
+    <!-- STEP 4: BUILDING PROPERTIES -->
+    <section class="card">
+      <h2>4. Building properties</h2>
+      <p class="sub">
+        Enter height and either the fundamental period T, or C<sub>t</sub>, x, and h<sub>n</sub> to compute an
+        approximate period. Weight W can be in kips, kN, etc. – base shear comes out in the same units.
+      </p>
+      <div class="grid">
+        <div class="field">
+          <label for="hn">h<sub>n</sub> (height to roof / C.G., ft)</label>
+          <input id="hn" type="number" step="0.1" placeholder="e.g. 45" />
+        </div>
+        <div class="field">
+          <label for="T">Fundamental period, T (s)</label>
+          <input id="T" type="number" step="0.01" placeholder="leave blank to compute from Cₜ, x, hₙ" />
+        </div>
+        <div class="field">
+          <label for="Ct">C<sub>t</sub> (from ASCE 7 period table)</label>
+          <input id="Ct" type="number" step="0.0001" placeholder="optional" />
+        </div>
+        <div class="field">
+          <label for="xExp">x exponent (from ASCE 7 period table)</label>
+          <input id="xExp" type="number" step="0.01" placeholder="optional" />
+        </div>
+        <div class="field">
+          <label for="W">Total seismic weight, W (kips / kN / etc.)</label>
+          <input id="W" type="number" step="0.1" placeholder="e.g. 720" />
+        </div>
+        <div class="field">
+          <label for="asdFactor">ASD factor (optional, e.g. 0.7)</label>
+          <input id="asdFactor" type="number" step="0.01" placeholder="0.7" />
+        </div>
+      </div>
+
+      <div class="button-row">
+        <button class="primary" type="button" id="btnCalc">📐 Compute seismic values</button>
+        <button class="secondary" type="button" id="btnCopyReport">📋 Copy full report</button>
+        <button class="secondary" type="button" id="btnCopyNotes">📝 Copy notes snippet</button>
+      </div>
+    </section>
+
+    <!-- OUTPUT: DETAILED REPORT -->
+    <section class="card">
+      <h2>5. Seismic design summary (calc-style)</h2>
+      <p class="sub">
+        Report text suitable for pasting into a calc package. Edit as needed and verify against ASCE 7.
+      </p>
+      <textarea id="report" readonly></textarea>
+      <div id="copyStatusReport" class="copy-status" aria-live="polite"></div>
+    </section>
+
+    <!-- OUTPUT: GENERAL NOTES SNIPPET -->
+    <section class="card">
+      <h2>6. Seismic criteria – general notes snippet</h2>
+      <p class="sub">
+        Short block intended for structural general notes. Copy/paste into your notes generator or drawing sheet and edit as required.
+      </p>
+      <textarea id="seismicNotes" readonly></textarea>
+      <div id="copyStatusNotes" class="copy-status" aria-live="polite"></div>
+    </section>
+
+    <footer>
+      Seismic Base Shear Helper – for educational use only; verify all values against ASCE 7 and local code.
+    </footer>
   </div>
 
-  <!-- RESULTS & NOTES -->
-  <section class="card" style="margin-top:1rem;">
-    <h2>3. Seismic Results &amp; General-Notes Snippet</h2>
-    <div id="results"></div>
-    <div class="field" style="margin-top:0.75rem;">
-      <label for="seismicNotes">Seismic design criteria – text block for general notes</label>
-      <textarea id="seismicNotes" readonly></textarea>
-      <small>
-        This block is formatted so you can paste directly into your Structural General Notes and then edit
-        for the specific project.
-      </small>
-    </div>
-  </section>
-
-  <section class="card" style="margin-top:0.5rem;">
-    <h2>4. Limitations &amp; Responsibilities</h2>
-    <p class="disclaimer">
-      This page is provided for educational use only and is not a substitute for a full seismic design in
-      accordance with the governing building code, ASCE 7, material standards, and local amendments.
-      Values and formulas may be simplified. The Structural Engineering Podcast / tool author does not
-      take responsibility for omissions, misapplication, or any use of the results. The engineer of record
-      is solely responsible for verifying all design inputs, outputs, and notes before issuing drawings or
-      calculations.
-    </p>
-  </section>
-</main>
-
-<script>
-  // Small library of common SFRS options (R, Cd, Omega0).
-  // Values are typical from ASCE 7-type tables; ALWAYS verify in the current standard.
-  const systemData = {
-    "steel-smf":        { label: "Steel special moment frames (SMF)",                     R: 8.0,  Cd: 5.5, Omega0: 3.0 },
-    "steel-imf":        { label: "Steel intermediate moment frames (IMF)",               R: 4.5, Cd: 4.0, Omega0: 3.0 },
-    "steel-omf":        { label: "Steel ordinary moment frames (OMF)",                   R: 3.5, Cd: 3.0, Omega0: 3.0 },
-    "steel-scbf":       { label: "Steel special concentrically braced frames",           R: 6.0, Cd: 5.0, Omega0: 2.5 },
-    "steel-ocbf":       { label: "Steel ordinary concentrically braced frames",          R: 3.25, Cd: 2.5, Omega0: 2.0 },
-    "steel-ebf":        { label: "Steel eccentrically braced frames",                    R: 8.0, Cd: 5.0, Omega0: 2.0 },
-
-    "conc-smf":         { label: "Special reinforced concrete moment frames",            R: 8.0, Cd: 5.5, Omega0: 3.0 },
-    "conc-omf":         { label: "Ordinary reinforced concrete moment frames",           R: 3.0, Cd: 2.5, Omega0: 2.5 },
-    "conc-sw-special":  { label: "Special reinforced concrete shear walls",              R: 6.5, Cd: 5.0, Omega0: 2.5 },
-    "conc-sw-ordinary": { label: "Ordinary reinforced concrete shear walls",             R: 4.0, Cd: 3.5, Omega0: 2.0 },
-
-    "wood-wsp":         { label: "Light-framed walls sheathed with wood structural panels", R: 6.5, Cd: 4.0, Omega0: 3.0 },
-
-    "rm-special":       { label: "Special reinforced masonry shear walls",               R: 5.0, Cd: 3.5, Omega0: 2.5 },
-    "rm-ordinary":      { label: "Ordinary reinforced masonry shear walls",              R: 3.0, Cd: 3.0, Omega0: 2.5 }
-  };
-
-  const systemSelectEl = document.getElementById("systemSelect");
-  const systemNameEl   = document.getElementById("systemName");
-  const REl            = document.getElementById("R");
-  const CdEl           = document.getElementById("Cd");
-  const OmegaEl        = document.getElementById("Omega0");
-
-  systemSelectEl.addEventListener("change", () => {
-    const key = systemSelectEl.value;
-    if (!key || !systemData[key]) return;
-    const sys = systemData[key];
-    systemNameEl.value = sys.label;
-    REl.value          = sys.R;
-    CdEl.value         = sys.Cd;
-    OmegaEl.value      = sys.Omega0;
-  });
-
-  function numOrNull(id) {
-    const v = document.getElementById(id).value.trim();
-    if (v === "") return null;
-    const n = parseFloat(v);
-    return isNaN(n) ? null : n;
-  }
-
-  function text(id) {
-    return document.getElementById(id).value.trim();
-  }
-
-  function formatMaybe(num, suffix) {
-    if (num === null || typeof num !== "number" || isNaN(num)) return "____" + (suffix || "");
-    return num.toFixed(3) + (suffix || "");
-  }
-
-  document.getElementById("calcBtn").addEventListener("click", () => {
-    const SDS  = numOrNull("SDS");
-    const SD1  = numOrNull("SD1");
-    const S1   = numOrNull("S1");
-    const R    = numOrNull("R");
-    const Ie   = numOrNull("importanceFactorIe");
-    const T    = numOrNull("T");
-    const W    = numOrNull("W");
-
-    const resultsDiv = document.getElementById("results");
-    const notesEl    = document.getElementById("seismicNotes");
-    const copyBtn    = document.getElementById("copyNotesBtn");
-
-    // Basic validation on the core items.
-    if (SDS === null || R === null || Ie === null || W === null) {
-      resultsDiv.innerHTML = "<p>Please enter at least S<sub>DS</sub>, R, I<sub>e</sub>, and W.</p>";
-      notesEl.value = "";
-      copyBtn.disabled = true;
-      return;
+  <script>
+    function valNum(id) {
+      var v = parseFloat(document.getElementById(id).value);
+      return isNaN(v) ? null : v;
     }
 
-    // Basic Cs from Eq. 12.8-2
-    const Cs_basic = SDS / (R / Ie);
-
-    // Minimum Cs per Eq. 12.8-5
-    const Cs_min1 = 0.044 * SDS * Ie;
-
-    // Additional minimum per Eq. 12.8-6 when S1 >= 0.6g
-    let Cs_min2 = null;
-    if (S1 !== null && S1 >= 0.6) {
-      Cs_min2 = 0.5 * S1 / (R / Ie);
+    function valStr(id) {
+      return (document.getElementById(id).value || "").trim();
     }
 
-    let Cs_governing = Cs_basic;
-    const notes = [];
-
-    notes.push(`Eq. 12.8-2: Cs = SDS / (R / Ie) = ${Cs_basic.toFixed(4)}`);
-
-    if (Cs_governing < Cs_min1) {
-      Cs_governing = Cs_min1;
-      notes.push(`Eq. 12.8-5 controls: Cs ≥ 0.044 * SDS * Ie = ${Cs_min1.toFixed(4)}`);
-    } else {
-      notes.push(`Eq. 12.8-5: 0.044 * SDS * Ie = ${Cs_min1.toFixed(4)}`);
+    function fmt(x, digits) {
+      if (x === null || x === undefined || isNaN(x)) return "N/A";
+      return x.toFixed(digits != null ? digits : 3);
     }
 
-    if (Cs_min2 !== null) {
-      if (Cs_governing < Cs_min2) {
-        Cs_governing = Cs_min2;
-        notes.push(`Eq. 12.8-6 controls (S1 ≥ 0.6 g): Cs ≥ 0.5 * S1 / (R / Ie) = ${Cs_min2.toFixed(4)}`);
-      } else {
-        notes.push(`Eq. 12.8-6 check: 0.5 * S1 / (R / Ie) = ${Cs_min2.toFixed(4)}`);
+    function getSiteBasis() {
+      var radios = document.getElementsByName("siteBasis");
+      for (var i = 0; i < radios.length; i++) {
+        if (radios[i].checked) return radios[i].value;
       }
-    } else {
-      notes.push("Eq. 12.8-6 not checked (S1 not provided or &lt; 0.6 g).");
+      return "";
     }
 
-    const V = Cs_governing * W; // base shear (same units as W)
+    function getSeismicContext() {
+      var ctx = {};
 
-    // Build results HTML
-    const sysName = text("systemName") || "(user-defined system)";
-    const code    = text("seismicCode") || "ASCE 7";
-    const rc      = text("riskCategory") || "";
-    const site    = text("siteClass") || "";
-    const Sd1Str  = SD1 === null ? "not entered" : SD1.toFixed(3) + " g";
-    const Tstr    = T === null ? "not entered" : T.toFixed(3) + " s";
-
-    resultsDiv.innerHTML = `
-      <h3>Summary</h3>
-      <p>
-        <span class="chip">${code}</span>
-        <span class="chip">Risk Category ${rc || "?"}</span>
-        ${site ? `<span class="chip">Site Class ${site}</span>` : ""}
-        ${sysName ? `<span class="chip">${sysName}</span>` : ""}
-      </p>
-      <p><strong>Inputs</strong></p>
-      <ul>
-        <li>S<sub>DS</sub> = ${SDS.toFixed(3)} g</li>
-        <li>S<sub>D1</sub> = ${Sd1Str}</li>
-        <li>R = ${R.toFixed(2)}, C<sub>d</sub> = ${CdEl.value || "____"}, Ω<sub>0</sub> = ${OmegaEl.value || "____"}</li>
-        <li>I<sub>e</sub> = ${Ie.toFixed(2)}, Site Class = ${site || "____"}</li>
-        <li>Fundamental period T = ${Tstr}</li>
-        <li>Seismic weight W = ${W.toFixed(1)} (same units as base shear)</li>
-      </ul>
-      <p><strong>Cs checks</strong></p>
-      <ul>
-        <li>Eq. 12.8-2: Cs = ${Cs_basic.toFixed(4)}</li>
-        <li>Eq. 12.8-5 minimum: ${Cs_min1.toFixed(4)}</li>
-        <li>Eq. 12.8-6 minimum: ${Cs_min2 !== null ? Cs_min2.toFixed(4) : "not checked"}</li>
-        <li><strong>Governing Cs used for V = ${Cs_governing.toFixed(4)}</strong></li>
-      </ul>
-      <p><strong>Design base shear (educational)</strong></p>
-      <ul>
-        <li>V = Cs · W = ${Cs_governing.toFixed(4)} × ${W.toFixed(1)} = <strong>${V.toFixed(1)}</strong> (units consistent with W)</li>
-      </ul>
-      <p><em>Note: This tool does not cover irregularities, vertical distribution of forces, accidental torsion,
-         redundancy factor ρ, drift limits, or diaphragm/collector design. The engineer of record must
-         check all applicable ASCE 7 provisions.</em></p>
-      <p><strong>Computation notes</strong></p>
-      <ul>${notes.map(n => `<li>${n}</li>`).join("")}</ul>
-    `;
-
-    // Build general-notes text block
-    const notesBlock = [
-      "SEISMIC DESIGN CRITERIA",
-      "-----------------------",
-      `Code Basis: ${code}`,
-      `Risk Category: ${rc || "____"}`,
-      `Seismic Importance Factor, I_e: ${Ie.toFixed(2)}`,
-      `Seismic Site Class: ${site || "____"}`,
-      "",
-      `Mapped / Design Spectral Accelerations (by others, per ASCE 7 Ch. 11):`,
-      `  S_DS = ${formatMaybe(SDS, " g")}`,
-      `  S_D1 = ${formatMaybe(SD1, " g")}`,
-      S1 !== null ? `  S_1 = ${S1.toFixed(3)} g` : "  S_1 = ____ g",
-      "",
-      `Seismic Force-Resisting System (SFRS):`,
-      `  ${sysName}`,
-      `  R = ${R.toFixed(2)}, C_d = ${CdEl.value || "____"}, Ω_0 = ${OmegaEl.value || "____"}`,
-      "",
-      `Analysis Procedure: Equivalent Lateral Force Procedure (ASCE 7 Ch. 12)`,
-      `Approximate Fundamental Period, T: ${Tstr}`,
-      `Effective Seismic Weight, W: ${W.toFixed(1)} (units consistent with analysis)`,
-      "",
-      `Design Seismic Response Coefficient, C_s (governing): ${Cs_governing.toFixed(4)}`,
-      `Resulting Design Base Shear, V = C_s · W = ${V.toFixed(1)} (same units as W)`,
-      "",
-      "Notes:",
-      "  1. Values above are generated by an educational helper and must be verified by the",
-      "     Engineer of Record against the current ASCE 7, the governing building code, and",
-      "     project-specific geotechnical / hazard information.",
-      "  2. Height limits, system limitations, redundancy, irregularities, torsion, drift,",
-      "     diaphragm / collector design, P-Δ effects, and detailing requirements are not",
-      "     checked by this tool and shall be verified in separate calculations.",
-      ""
-    ].join("\n");
-
-    notesEl.value = notesBlock;
-    copyBtn.disabled = false;
-  });
-
-  document.getElementById("copyNotesBtn").addEventListener("click", () => {
-    const text = document.getElementById("seismicNotes").value;
-    if (!text) return;
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(text).then(() => {
-        alert("Seismic notes copied to clipboard.");
-      }).catch(() => {
-        alert("Could not access clipboard; please copy manually.");
-      });
-    } else {
-      alert("Clipboard API not available; please select and copy manually.");
-    }
-  });
-</script>
-</body>
-</html>
+      // Project & code
+      ctx.projName   = valStr("proj
