@@ -35,7 +35,7 @@
     }
 
     header {
-      margin-bottom: 1.75rem;
+      margin-bottom: 1.5rem;
       text-align: left;
     }
 
@@ -50,6 +50,38 @@
       color: var(--text-muted);
       max-width: 720px;
       font-size: 0.95rem;
+    }
+
+    .top-nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 1.25rem;
+      padding: 0.5rem 0.75rem;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.03);
+      border: 1px solid rgba(148, 163, 184, 0.4);
+    }
+
+    .top-nav a {
+      font-size: 0.85rem;
+      padding: 0.35rem 0.85rem;
+      border-radius: 999px;
+      text-decoration: none;
+      color: #111827;
+      background: #ffffff;
+      border: 1px solid rgba(148, 163, 184, 0.6);
+    }
+
+    .top-nav a:hover {
+      background: #e5edff;
+      border-color: #1f6feb;
+    }
+
+    .top-nav a.current {
+      background: #1f6feb;
+      color: #ffffff;
+      border-color: #1f6feb;
     }
 
     .card {
@@ -216,39 +248,6 @@
         justify-content: center;
       }
     }
-
-    /* Top navigation linking the tools */
-    .top-nav {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-      margin-bottom: 1.2rem;
-      padding: 0.5rem 0.75rem;
-      border-radius: 999px;
-      background: rgba(15, 23, 42, 0.03);
-      border: 1px solid rgba(148, 163, 184, 0.4);
-    }
-
-    .top-nav a {
-      font-size: 0.85rem;
-      padding: 0.35rem 0.85rem;
-      border-radius: 999px;
-      text-decoration: none;
-      color: #111827;
-      background: #ffffff;
-      border: 1px solid rgba(148, 163, 184, 0.6);
-    }
-
-    .top-nav a:hover {
-      background: #e5edff;
-      border-color: #1f6feb;
-    }
-
-    .top-nav a.current {
-      background: #1f6feb;
-      color: #ffffff;
-      border-color: #1f6feb;
-    }
   </style>
 </head>
 <body>
@@ -262,8 +261,8 @@
     <header>
       <h1>Seismic Base Shear Helper (ASCE 7)</h1>
       <p>
-        Quick helper for Equivalent Lateral Force (ELF) calculations using ASCE 7-10/16/22 style parameters.
-        You still need to pull system values (R, C<sub>d</sub>, Ω<sub>0</sub>, C<sub>t</sub>, x, etc.) directly from ASCE 7.
+        Quick helper for Equivalent Lateral Force (ELF) calculations using ASCE 7-10/16/22-style parameters.
+        You still need to pull R, C<sub>t</sub>, x, etc. from ASCE 7 and verify everything as the Engineer of Record.
       </p>
     </header>
 
@@ -329,7 +328,7 @@
     <section class="card">
       <h2>2. Hazard parameters</h2>
       <p class="sub">
-        Enter values from your USGS / hazard report. For ASCE 7-22 you can treat SDS/SD1 as the design spectral
+        Enter values from your hazard report / ASCE tool. For ASCE 7-22 you can treat SDS/SD1 as the design spectral
         accelerations S<sub>a</sub> at short period and 1-sec.
       </p>
       <div class="grid">
@@ -376,11 +375,11 @@
       <h2>3. Seismic force-resisting system</h2>
       <p class="sub">
         Describe the system and enter R, C<sub>d</sub>, and Ω<sub>0</sub> from the appropriate ASCE 7 table
-        (e.g. Table 12.2-1 / 12.2-2). Use the exact wording from the table if you like.
+        (e.g. Table 12.2-1 / 12.2-2).
       </p>
       <div class="grid">
         <div class="field">
-          <label for="systemName">System description (from ASCE 7 table)</label>
+          <label for="systemName">System description</label>
           <input id="systemName" type="text" placeholder="e.g. Special steel moment frame" />
         </div>
         <div class="field">
@@ -434,29 +433,28 @@
 
       <div class="button-row">
         <button class="primary" type="button" id="btnCalc">📐 Compute seismic values</button>
-        <button class="secondary" type="button" id="btnCopyReport">📋 Copy full report</button>
-        <button class="secondary" type="button" id="btnCopyNotes">📝 Copy notes snippet</button>
+        <button class="secondary" type="button" id="btnCopySummary">📋 Copy calc summary</button>
+        <button class="secondary" type="button" id="btnCopyNotes">📋 Copy general notes snippet</button>
       </div>
     </section>
 
-    <!-- OUTPUT: DETAILED REPORT -->
+    <!-- OUTPUT: CALC SUMMARY -->
     <section class="card">
-      <h2>5. Seismic design summary (calc-style)</h2>
+      <h2>5. Seismic design summary (calc output)</h2>
       <p class="sub">
         Report text suitable for pasting into a calc package. Edit as needed and verify against ASCE 7.
       </p>
       <textarea id="report" readonly></textarea>
-      <div id="copyStatusReport" class="copy-status" aria-live="polite"></div>
+      <div id="copyStatus" class="copy-status" aria-live="polite"></div>
     </section>
 
     <!-- OUTPUT: GENERAL NOTES SNIPPET -->
     <section class="card">
-      <h2>6. Seismic criteria – general notes snippet</h2>
+      <h2>6. Seismic general notes snippet</h2>
       <p class="sub">
-        Short block intended for structural general notes. Copy/paste into your notes generator or drawing sheet and edit as required.
+        Short criteria block you can paste into structural general notes and edit on a project-by-project basis.
       </p>
       <textarea id="seismicNotes" readonly></textarea>
-      <div id="copyStatusNotes" class="copy-status" aria-live="polite"></div>
     </section>
 
     <footer>
@@ -487,8 +485,351 @@
       return "";
     }
 
-    function getSeismicContext() {
-      var ctx = {};
+    // Compute all seismic values in one place so both summary + notes stay in sync
+    function computeSeismicState() {
+      var state = {};
 
-      // Project & code
-      ctx.projName   = valStr("proj
+      // Project + code
+      state.projName   = valStr("projName");
+      state.projNumber = valStr("projNumber");
+      state.codeYear   = valStr("codeYear");
+      state.asceEd     = valStr("asceEdition");
+      state.riskCat    = valStr("riskCat");
+      state.Ie         = valNum("Ie");
+
+      // Hazard
+      state.siteClass  = valStr("siteClass");
+      state.siteBasis  = getSiteBasis();
+      state.Sds        = valNum("Sds");
+      state.Sd1        = valNum("Sd1");
+      state.S1         = valNum("S1");
+      state.Tl         = valNum("Tl");
+
+      // System
+      state.systemName = valStr("systemName");
+      state.R          = valNum("R");
+      state.Cd         = valNum("Cd");
+      state.Omega      = valNum("Omega");
+
+      // Building
+      state.hn         = valNum("hn");
+      state.T_input    = valNum("T");
+      state.Ct         = valNum("Ct");
+      state.xExp       = valNum("xExp");
+      state.W          = valNum("W");
+      state.asdFactor  = valNum("asdFactor");
+
+      // Derived period
+      var T = state.T_input;
+      state.T_source = "entered directly";
+      if (T === null && state.Ct !== null && state.xExp !== null && state.hn !== null) {
+        T = state.Ct * Math.pow(state.hn, state.xExp);
+        state.T_source = "approximate, T = Ct · h_n^x";
+      }
+      state.T = T;
+
+      // Seismic coefficients
+      var IeUsed = state.Ie !== null ? state.Ie : 1.0;
+
+      var Cs_eq2 = null;
+      if (state.Sds !== null && state.R !== null) {
+        Cs_eq2 = state.Sds * IeUsed / state.R;
+      }
+
+      var Cs_upper = null;
+      if (state.Sd1 !== null && state.R !== null && state.T !== null && state.Tl !== null) {
+        if (state.T <= state.Tl) {
+          Cs_upper = state.Sd1 * IeUsed / (state.T * state.R);
+        } else {
+          Cs_upper = state.Sd1 * state.Tl * IeUsed / (state.T * state.T * state.R);
+        }
+      }
+
+      var Cs_min_base = null;
+      if (state.Sds !== null) {
+        var c1 = 0.044 * state.Sds * IeUsed;
+        var c2 = 0.01;
+        Cs_min_base = Math.max(c1, c2);
+      }
+
+      var Cs_min_long = null;
+      if (state.S1 !== null && state.R !== null && state.S1 >= 0.6) {
+        Cs_min_long = 0.5 * state.S1 * IeUsed / state.R;
+      }
+
+      var Cs_min = null;
+      if (Cs_min_base !== null) Cs_min = Cs_min_base;
+      if (Cs_min_long !== null) Cs_min = (Cs_min === null) ? Cs_min_long : Math.max(Cs_min, Cs_min_long);
+
+      var Cs_design = Cs_eq2;
+      var Cs_governing = "SDS · Ie / R";
+
+      if (Cs_design !== null && Cs_upper !== null && Cs_design > Cs_upper) {
+        Cs_design = Cs_upper;
+        Cs_governing = "upper-bound period limit";
+      }
+
+      if (Cs_design !== null && Cs_min !== null && Cs_design < Cs_min) {
+        Cs_design = Cs_min;
+        Cs_governing = "minimum Cs requirement";
+      }
+
+      state.Cs_eq2       = Cs_eq2;
+      state.Cs_upper     = Cs_upper;
+      state.Cs_min_base  = Cs_min_base;
+      state.Cs_min_long  = Cs_min_long;
+      state.Cs_min       = Cs_min;
+      state.Cs_design    = Cs_design;
+      state.Cs_governing = Cs_governing;
+
+      // Base shear
+      state.V = null;
+      if (Cs_design !== null && state.W !== null) {
+        state.V = Cs_design * state.W;
+      }
+
+      state.V_asd = null;
+      if (state.V !== null && state.asdFactor !== null) {
+        state.V_asd = state.V * state.asdFactor;
+      }
+
+      return state;
+    }
+
+    function buildSeismicReport(state) {
+      var report = [];
+
+      report.push("SEISMIC DESIGN SUMMARY – EQUIVALENT LATERAL FORCE (ELF)");
+      report.push("");
+
+      // PROJECT & CODE
+      report.push("PROJECT & CODE");
+      report.push("--------------");
+      if (state.projName)   report.push("Project: " + state.projName);
+      if (state.projNumber) report.push("Project No.: " + state.projNumber);
+      if (state.codeYear)   report.push("Governing building code: " + state.codeYear);
+      if (state.asceEd)     report.push("Seismic standard: " + state.asceEd);
+      if (state.riskCat)    report.push("Risk category: " + state.riskCat);
+      if (state.Ie !== null) {
+        report.push("Seismic importance factor, Ie: " + fmt(state.Ie, 2));
+      } else {
+        report.push("Seismic importance factor, Ie: ______ (see ASCE 7 Chapter 11)");
+      }
+      report.push("");
+
+      // HAZARD
+      report.push("HAZARD PARAMETERS");
+      report.push("-----------------");
+      report.push("Site class: " + (state.siteClass || "________"));
+      if (state.siteBasis) report.push("Site class basis: " + state.siteBasis);
+      report.push("SDS (short-period design accel, g): " + (state.Sds !== null ? fmt(state.Sds, 3) : "____"));
+      report.push("SD1 (1-sec design accel, g): " + (state.Sd1 !== null ? fmt(state.Sd1, 3) : "____"));
+      report.push("S1 (mapped 1-sec MCER, g): " + (state.S1 !== null ? fmt(state.S1, 3) : "____"));
+      report.push("TL (long-period transition, s): " + (state.Tl !== null ? fmt(state.Tl, 3) : "____"));
+      report.push("");
+
+      // SYSTEM
+      report.push("SEISMIC FORCE-RESISTING SYSTEM");
+      report.push("------------------------------");
+      report.push("System description: " + (state.systemName || "____________________________"));
+      report.push("R (response modification factor): " + (state.R !== null ? fmt(state.R, 2) : "____"));
+      report.push("Cd (deflection amplification factor): " + (state.Cd !== null ? fmt(state.Cd, 2) : "____"));
+      report.push("Ω0 (overstrength factor): " + (state.Omega !== null ? fmt(state.Omega, 2) : "____"));
+      report.push("");
+
+      // BUILDING
+      report.push("BUILDING GEOMETRY & WEIGHT");
+      report.push("---------------------------");
+      report.push("h_n (height to roof / C.G.): " + (state.hn !== null ? fmt(state.hn, 2) + " ft" : "____ ft"));
+      if (state.Ct !== null || state.xExp !== null) {
+        report.push("Period parameters: Ct = " + (state.Ct !== null ? fmt(state.Ct, 4) : "____")
+          + ", x = " + (state.xExp !== null ? fmt(state.xExp, 2) : "____"));
+      }
+      report.push("Fundamental period T: " + (state.T !== null ? fmt(state.T, 3) + " s (" + state.T_source + ")" : "____ s"));
+      report.push("Total seismic weight W (consistent units): " + (state.W !== null ? fmt(state.W, 2) : "____"));
+      if (state.asdFactor !== null) {
+        report.push("ASD reduction factor (for optional ASD base shear): " + fmt(state.asdFactor, 2));
+      }
+      report.push("");
+
+      // SEISMIC COEFFICIENTS
+      report.push("SEISMIC COEFFICIENTS (ELF)");
+      report.push("---------------------------");
+
+      if (state.Cs_eq2 !== null) {
+        report.push("Candidate Cs from SDS and R (Eqn 12.8-2 style): Cs = SDS · Ie / R = " + fmt(state.Cs_eq2, 3));
+      } else {
+        report.push("Cs from SDS and R cannot be computed – need SDS, R, and Ie.");
+      }
+
+      if (state.Cs_upper !== null) {
+        if (state.T !== null && state.Tl !== null && state.T <= state.Tl) {
+          report.push("Upper-bound Cs for T ≤ TL (Eqn 12.8-3 style): " + fmt(state.Cs_upper, 3));
+        } else {
+          report.push("Upper-bound Cs for T > TL (Eqn 12.8-4 style): " + fmt(state.Cs_upper, 3));
+        }
+      } else {
+        report.push("Upper-bound Cs (period-based) not evaluated – need SD1, R, Ie, T, and TL.");
+      }
+
+      if (state.Cs_min_base !== null) {
+        var IeUsed = state.Ie !== null ? state.Ie : 1.0;
+        var c1 = 0.044 * state.Sds * IeUsed;
+        var c2 = 0.01;
+        report.push("Minimum Cs from SDS and absolute floor (Eqn 12.8-5 style):");
+        report.push("  0.044 · SDS · Ie = " + fmt(c1, 3) + ",  absolute min = 0.01  → base min Cs = " + fmt(state.Cs_min_base, 3));
+      } else {
+        report.push("Minimum Cs from SDS not evaluated – need SDS and Ie.");
+      }
+
+      if (state.Cs_min_long !== null) {
+        report.push("Additional minimum Cs for S1 ≥ 0.6 g (Eqn 12.8-6 style): " + fmt(state.Cs_min_long, 3));
+      } else if (state.S1 !== null && state.S1 < 0.6) {
+        report.push("S1 < 0.6 g → long-period minimum Cs (Eqn 12.8-6) does not govern.");
+      } else {
+        report.push("Additional minimum Cs for S1 ≥ 0.6 g not evaluated – need S1 and R.");
+      }
+
+      if (state.Cs_min !== null) {
+        report.push("Overall minimum Cs used for comparison: " + fmt(state.Cs_min, 3));
+      }
+
+      report.push("");
+
+      if (state.Cs_design !== null) {
+        report.push("DESIGN Cs USED: " + fmt(state.Cs_design, 3) + "  (governing check: " + state.Cs_governing + ")");
+      } else {
+        report.push("DESIGN Cs NOT DETERMINED – missing key inputs. Check SDS, SD1, S1, R, Ie, T, TL.");
+      }
+
+      if (state.V !== null) {
+        report.push("Strength-level base shear: V = Cs · W = " +
+          fmt(state.Cs_design, 3) + " × " + fmt(state.W, 2) + " = " + fmt(state.V, 2));
+      } else {
+        report.push("Base shear V not computed – need Cs and W.");
+      }
+
+      if (state.V_asd !== null) {
+        report.push("ASD-level base shear (approx.): V_ASD = " +
+          fmt(state.asdFactor, 2) + " × V = " + fmt(state.V_asd, 2));
+      }
+
+      report.push("");
+      report.push("NOTES & CHECKS");
+      report.push("--------------");
+      report.push("- Verify Seismic Design Category (SDC) per ASCE 7 Chapter 11 using SDS, SD1, and risk category.");
+      report.push("- Confirm selected SFRS is permitted for the SDC and height per ASCE 7 system tables.");
+      report.push("- Confirm period assumptions (T) and any code limits on approximate vs. analytical periods.");
+      report.push("- Use Cd and Ω0 for drift checks, collector / overstrength design, and other detailing requirements.");
+      report.push("- Distribute base shear vertically and check diaphragms, collectors, and elements per ASCE 7 Chapter 12.");
+      report.push("- This summary is only a starting point; final design must follow the full provisions of ASCE 7 and local amendments.");
+
+      return report.join("\n");
+    }
+
+    function buildSeismicNotes(state) {
+      var lines = [];
+
+      lines.push("SEISMIC DESIGN CRITERIA");
+      lines.push("");
+      lines.push("1. Governing building code: " +
+        (state.codeYear || "________________________") + ".");
+      lines.push("2. Seismic design standard: " +
+        (state.asceEd || "ASCE 7-____") + ".");
+      lines.push("3. Risk category: " + (state.riskCat || "____") +
+        "; importance factor I_e = " + (state.Ie !== null ? fmt(state.Ie, 2) : "____") + ".");
+      lines.push("4. Site class: " + (state.siteClass || "________") +
+        (state.siteBasis ? " (basis: " + state.siteBasis + ")." : "."));
+      lines.push("5. Design spectral response accelerations (at short and 1-sec periods):");
+      lines.push("   SDS = " + (state.Sds !== null ? fmt(state.Sds, 3) : "____") +
+        " g,  SD1 = " + (state.Sd1 !== null ? fmt(state.Sd1, 3) : "____") + " g.");
+      lines.push("   Mapped 1-sec MCER acceleration: S1 = " +
+        (state.S1 !== null ? fmt(state.S1, 3) : "____") + " g.");
+      lines.push("6. Fundamental period for ELF design: T = " +
+        (state.T !== null ? fmt(state.T, 3) : "____") + " sec.");
+      lines.push("7. Seismic force-resisting system (SFRS): " +
+        (state.systemName || "________________________________") + ".");
+      lines.push("   Response modification factor R = " +
+        (state.R !== null ? fmt(state.R, 2) : "____") + ";");
+      lines.push("   deflection amplification factor C_d = " +
+        (state.Cd !== null ? fmt(state.Cd, 2) : "____") + ";");
+      lines.push("   overstrength factor Ω_0 = " +
+        (state.Omega !== null ? fmt(state.Omega, 2) : "____") + ".");
+      lines.push("8. Total effective seismic weight used for ELF base shear: W = " +
+        (state.W !== null ? fmt(state.W, 2) : "____") + " (consistent units).");
+
+      if (state.Cs_design !== null) {
+        lines.push("9. Seismic response coefficient for ELF: C_s = " +
+          fmt(state.Cs_design, 3) + " (governed by " + state.Cs_governing + ").");
+      } else {
+        lines.push("9. Seismic response coefficient C_s to be determined per ASCE 7 Chapter 12.");
+      }
+
+      if (state.V !== null) {
+        lines.push("10. Design base shear for ELF distribution: V = " +
+          fmt(state.V, 2) + " (same units as W).");
+      } else {
+        lines.push("10. Design base shear V to be calculated from V = C_s · W.");
+      }
+
+      lines.push("11. Seismic analysis procedure: Equivalent Lateral Force (ELF) method per ASCE 7 Chapter 12.");
+      lines.push("12. Seismic Design Category (SDC) to be established from SDS, SD1, and risk category per ASCE 7 Chapter 11.");
+      lines.push("13. Detailing, collector design, diaphragms, and drift checks shall comply with the applicable");
+      lines.push("    material standards referenced by ASCE 7 and the governing building code.");
+
+      return lines.join("\n");
+    }
+
+    function updateSeismicOutputs() {
+      var state = computeSeismicState();
+      var summary = buildSeismicReport(state);
+      var notes = buildSeismicNotes(state);
+
+      document.getElementById("report").value = summary;
+      document.getElementById("seismicNotes").value = notes;
+
+      var status = document.getElementById("copyStatus");
+      status.textContent = "";
+      status.className = "copy-status";
+    }
+
+    function copyTextarea(id) {
+      var el = document.getElementById(id);
+      var status = document.getElementById("copyStatus");
+      var text = el.value || "";
+
+      if (!text.trim()) {
+        status.textContent = "Nothing to copy. Compute values first.";
+        status.className = "copy-status error";
+        return;
+      }
+
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text);
+        } else {
+          el.focus();
+          el.select();
+          document.execCommand("copy");
+        }
+        status.textContent = "Copied to clipboard. Paste into your calc or notes and edit as needed.";
+        status.className = "copy-status success";
+      } catch (e) {
+        status.textContent = "Could not copy automatically. Select the text and copy manually (Ctrl+C / Cmd+C).";
+        status.className = "copy-status error";
+      }
+    }
+
+    document.getElementById("btnCalc").addEventListener("click", updateSeismicOutputs);
+    document.getElementById("btnCopySummary").addEventListener("click", function () {
+      copyTextarea("report");
+    });
+    document.getElementById("btnCopyNotes").addEventListener("click", function () {
+      copyTextarea("seismicNotes");
+    });
+
+    // initial empty report so layout isn't blank
+    updateSeismicOutputs();
+  </script>
+</body>
+</html>
