@@ -1,821 +1,968 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8" />
-  <title>Structural General Notes Generator</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Wood Beams – Slowest Calculator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Basic styles -->
   <style>
-  
-    :root {
-      --bg: #f5f5f7;
-      --card-bg: #ffffff;
-      --border: #d0d0d5;
-      --accent: #1f6feb;
-      --accent-soft: rgba(31, 111, 235, 0.08);
-      --text-main: #111827;
-      --text-muted: #4b5563;
-      --danger: #b91c1c;
-      --radius-lg: 16px;
-      --radius-md: 10px;
-      --shadow-soft: 0 14px 30px rgba(15, 23, 42, 0.08);
-    }
-
-    * {
-      box-sizing: border-box;
-    }
-
+    * { box-sizing: border-box; }
     body {
       margin: 0;
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: radial-gradient(circle at top, #e5edff 0, #f5f5f7 55%);
-      color: var(--text-main);
+      background: #f3f6fb;
+      color: #0c223f;
     }
-
-    .app {
-      max-width: 980px;
-      margin: 0 auto;
-      padding: 2.5rem 1rem 3rem;
-    }
-
     header {
-      margin-bottom: 1.75rem;
-      text-align: left;
+      background: #1450b8;
+      color: #ffffff;
+      padding: 1.5rem 2rem;
     }
-
     header h1 {
-      margin: 0 0 0.5rem;
-      font-size: 1.9rem;
-      letter-spacing: 0.03em;
+      margin: 0;
+      font-size: 2.2rem;
+      letter-spacing: 0.05em;
+    }
+    header p {
+      margin: 0.2rem 0 0;
+      opacity: 0.9;
     }
 
-    header p {
-      margin: 0;
-      color: var(--text-muted);
-      max-width: 700px;
-      font-size: 0.95rem;
+    main {
+      max-width: 980px;
+      margin: 1.5rem auto 3rem;
+      padding: 0 1rem 3rem;
+    }
+
+    .step-nav {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+      overflow-x: auto;
+    }
+    .step-chip {
+      padding: 0.45rem 0.9rem;
+      border-radius: 999px;
+      border: 1px solid #c5d4f0;
+      background: #e4ecff;
+      font-size: 0.85rem;
+      white-space: nowrap;
+      cursor: pointer;
+      user-select: none;
+    }
+    .step-chip.active {
+      background: #1450b8;
+      border-color: #1450b8;
+      color: #ffffff;
+      font-weight: 600;
+    }
+    .step-chip.completed {
+      background: #18a06a;
+      border-color: #18a06a;
+      color: #ffffff;
+    }
+
+    .step {
+      display: none;
+    }
+    .step.active {
+      display: block;
     }
 
     .card {
-      background: var(--card-bg);
-      border-radius: var(--radius-lg);
-      box-shadow: var(--shadow-soft);
-      padding: 1.5rem 1.5rem 1.75rem;
-      margin-bottom: 1.5rem;
-      border: 1px solid rgba(148, 163, 184, 0.25);
+      background: #ffffff;
+      padding: 1.5rem 1.75rem;
+      border-radius: 12px;
+      box-shadow: 0 10px 25px rgba(15, 35, 70, 0.04);
+      margin-bottom: 1.25rem;
     }
 
-    .card h2 {
-      margin: 0 0 0.75rem;
-      font-size: 1.2rem;
+    h2 {
+      margin-top: 0;
+      margin-bottom: 1rem;
+      font-size: 1.3rem;
+    }
+    h3 {
+      margin: 1rem 0 0.6rem;
+      font-size: 1.05rem;
+    }
+    p {
+      margin: 0.4rem 0;
+      line-height: 1.5;
     }
 
-    .card h3 {
-      margin: 0.25rem 0 0.5rem;
-      font-size: 1rem;
-      color: var(--text-main);
+    .grid-2 {
+      display: grid;
+      grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+      gap: 1rem;
     }
 
-    .disclaimer {
-      border-left: 4px solid var(--danger);
-      background: #fef2f2;
-      color: #7f1d1d;
+    label {
+      font-size: 0.9rem;
+      display: block;
+      margin-bottom: 0.25rem;
+    }
+    input[type="number"],
+    input[type="text"],
+    select {
+      width: 100%;
+      padding: 0.4rem 0.55rem;
+      border-radius: 6px;
+      border: 1px solid #c7d2e5;
       font-size: 0.9rem;
     }
 
-    .disclaimer strong {
-      display: inline-block;
-      margin-bottom: 0.25rem;
-    }
-
-    .controls h2 {
+    .radio-row {
       display: flex;
       align-items: center;
       gap: 0.4rem;
-    }
-
-    .controls h2 span.tag {
-      font-size: 0.75rem;
-      background: var(--accent-soft);
-      color: var(--accent);
-      padding: 0.1rem 0.55rem;
-      border-radius: 999px;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-    }
-
-    .field-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 0.6rem 1rem;
-      margin-top: 0.4rem;
-      margin-bottom: 0.9rem;
-    }
-
-    .field {
-      display: flex;
-      flex-direction: column;
-      font-size: 0.85rem;
-      color: var(--text-main);
-    }
-
-    .field label {
-      margin-bottom: 0.15rem;
-      color: var(--text-muted);
-    }
-
-    .field input,
-    .field select {
-      padding: 0.35rem 0.45rem;
-      border-radius: 8px;
-      border: 1px solid #d1d5db;
-      font-size: 0.85rem;
-      background: #f9fafb;
-    }
-
-    .field input:focus,
-    .field select:focus {
-      outline: 2px solid var(--accent);
-      outline-offset: 1px;
-      background: #ffffff;
-    }
-
-    .section-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 0.4rem 0.9rem;
-      margin: 0.75rem 0 1rem;
-    }
-
-    .checkbox-pill {
-      display: flex;
-      align-items: center;
-      gap: 0.45rem;
-      padding: 0.35rem 0.6rem;
-      border-radius: 999px;
-      background: #f9fafb;
-      border: 1px solid #e5e7eb;
+      margin: 0.2rem 0;
       font-size: 0.9rem;
+    }
+
+    .pill-toggle {
+      display: inline-flex;
+      border-radius: 999px;
+      border: 1px solid #c5d4f0;
+      overflow: hidden;
+      margin-top: 0.25rem;
+    }
+    .pill-toggle button {
+      border: none;
+      padding: 0.35rem 0.85rem;
+      background: transparent;
+      font-size: 0.85rem;
       cursor: pointer;
-      transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+    .pill-toggle button.active {
+      background: #1450b8;
+      color: #ffffff;
     }
 
-    .checkbox-pill input {
-      accent-color: var(--accent);
-      cursor: pointer;
-    }
-
-    .checkbox-pill:hover {
-      background: #f3f4ff;
-      border-color: var(--accent-soft);
-      box-shadow: 0 0 0 1px var(--accent-soft);
-    }
-
-    .button-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.65rem;
-      margin-top: 0.9rem;
-    }
-
-    button {
+    .btn-primary {
+      display: inline-block;
+      padding: 0.65rem 1.5rem;
       border-radius: 999px;
       border: none;
-      padding: 0.55rem 1.1rem;
-      font-size: 0.92rem;
-      font-weight: 500;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.35rem;
-      white-space: nowrap;
-    }
-
-    button.primary {
-      background: var(--accent);
-      color: white;
-      box-shadow: 0 10px 18px rgba(31, 111, 235, 0.35);
-    }
-
-    button.secondary {
-      background: #e5e7eb;
+      background: #f4c542;
       color: #111827;
-    }
-
-    button:active {
-      transform: translateY(1px);
-      box-shadow: none;
-    }
-
-    .output h2 {
-      margin-bottom: 0.4rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 0.6rem;
-    }
-
-    .output-subtitle {
-      font-size: 0.85rem;
-      color: var(--text-muted);
-      margin-bottom: 0.7rem;
-    }
-
-    textarea {
-      width: 100%;
-      min-height: 360px;
-      font-family: "SF Mono", ui-monospace, Menlo, Consolas, monospace;
-      font-size: 0.86rem;
-      line-height: 1.5;
-      padding: 0.9rem;
-      border-radius: var(--radius-md);
-      border: 1px solid var(--border);
-      resize: vertical;
-      background: #0f172a;
-      color: #e5e7eb;
-      box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.8);
-    }
-
-    textarea:focus {
-      outline: 2px solid var(--accent);
-      outline-offset: 2px;
-    }
-
-    .copy-status {
-      font-size: 0.8rem;
-      color: var(--text-muted);
-      margin-top: 0.35rem;
-      min-height: 1em;
-    }
-
-    .copy-status.success {
-      color: #059669;
-    }
-
-    .copy-status.error {
-      color: var(--danger);
-    }
-
-    footer {
+      font-weight: 600;
+      font-size: 0.95rem;
+      cursor: pointer;
       margin-top: 1rem;
+      box-shadow: 0 6px 0 #d9a926;
+    }
+    .btn-primary:active {
+      transform: translateY(1px);
+      box-shadow: 0 4px 0 #d9a926;
+    }
+    .btn-secondary {
+      border-radius: 999px;
+      border: 1px solid #c5d4f0;
+      background: #eef3ff;
+      padding: 0.5rem 1.2rem;
+      font-size: 0.85rem;
+      margin-left: 0.75rem;
+      cursor: pointer;
+      margin-top: 1rem;
+    }
+
+    .feedback {
+      margin-top: 0.75rem;
+      font-size: 0.9rem;
+      padding: 0.6rem 0.8rem;
+      border-radius: 8px;
+      background: #f5f7ff;
+      border-left: 3px solid #c5d4f0;
+    }
+    .feedback.ok {
+      background: #ebf9f3;
+      border-left-color: #18a06a;
+    }
+    .feedback.error {
+      background: #fff5f5;
+      border-left-color: #e02424;
+    }
+
+    .small-note {
       font-size: 0.8rem;
-      color: var(--text-muted);
-      text-align: right;
+      color: #6b7280;
+      margin-top: 0.3rem;
     }
 
-    @media (max-width: 640px) {
-      .app {
-        padding-inline: 0.8rem;
+    .report-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+      margin-top: 0.75rem;
+    }
+    .report-table th,
+    .report-table td {
+      border: 1px solid #d1d5db;
+      padding: 0.35rem 0.5rem;
+      text-align: left;
+    }
+    .badge-pass, .badge-fail {
+      display: inline-block;
+      padding: 0.2rem 0.6rem;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      margin-left: 0.3rem;
+    }
+    .badge-pass {
+      background: #ebf9f3;
+      color: #166534;
+    }
+    .badge-fail {
+      background: #fef2f2;
+      color: #b91c1c;
+    }
+
+    @media (max-width: 720px) {
+      .grid-2 {
+        grid-template-columns: minmax(0, 1fr);
       }
-      header h1 {
-        font-size: 1.5rem;
+      header {
+        padding: 1.25rem 1.25rem;
       }
-      button.primary,
-      button.secondary {
-        flex: 1 1 auto;
-        justify-content: center;
+      main {
+        padding: 0 0.75rem 2.5rem;
       }
     }
-      /* ...your existing styles... */
-
-  .top-nav {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    margin-bottom: 1rem;
-    padding: 0.5rem 0.75rem;
-    border-radius: 999px;
-    background: rgba(15, 23, 42, 0.03);
-    border: 1px solid rgba(148, 163, 184, 0.4);
-  }
-
-  .top-nav a {
-    font-size: 0.85rem;
-    padding: 0.35rem 0.85rem;
-    border-radius: 999px;
-    text-decoration: none;
-    color: #111827;
-    background: #ffffff;
-    border: 1px solid rgba(148, 163, 184, 0.6);
-  }
-
-  .top-nav a:hover {
-    background: #e5edff;
-    border-color: #1f6feb;
-  }
-
-  .top-nav a.current {
-    background: #1f6feb;
-    color: #ffffff;
-    border-color: #1f6feb;
-  }
   </style>
+
+  <!-- MathJax for LaTeX rendering -->
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async
+    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 </head>
+
 <body>
-  <div class="app">
-    <header>
-      <h1>Structural General Notes Generator</h1>
-      <p>
-        Enter basic project data and select the structural note sections your project actually uses.
-        Generate a text block you or your engineer can review, edit, and paste into your drawings or specs.
-      </p>
-    </header>
+  <header>
+    <h1>WOOD BEAMS</h1>
+    <p>The world’s slowest calculator and fastest learning tool.</p>
+  </header>
 
-    <section class="card disclaimer">
-      <strong>Important – Read Before Use</strong>
-      <p>
-        This tool and any generated text are provided for general educational and drafting convenience only.
-        They are <u>not</u> project-specific engineering, do not create an Engineer-of-Record or client relationship,
-        and are not a substitute for design, review, or code analysis by a licensed Professional Engineer familiar
-        with the specific project, jurisdiction, and applicable codes.
-      </p>
-      <p>
-        The Structural Engineering Podcast, its hosts, guests, and contributors do not assume any responsibility or
-        liability for the selection, completeness, correctness, or application of any notes produced by this tool.
-        By using this generator, you agree that you are solely responsible for reviewing, editing, and applying
-        the content in accordance with all applicable codes, standards, and local requirements.
-      </p>
-      <p>
-        This tool is provided as a separate, stand-alone resource and is not part of any professional services
-        or project-specific deliverables associated with The Structural Engineering Podcast or its contributors.
-      </p>
-    </section>
+  <main>
+    <!-- Step nav -->
+    <div class="step-nav">
+      <div class="step-chip active" data-step="0">Step 0 · Choose Beam</div>
+      <div class="step-chip" data-step="1">Step 1 · Moment</div>
+      <div class="step-chip" data-step="2">Step 2 · Shear</div>
+      <div class="step-chip" data-step="3">Step 3 · Deflection</div>
+      <div class="step-chip" data-step="4">Report</div>
+    </div>
 
-    <section class="card controls">
-      <h2>
-        Project Data &amp; Sections
-        <span class="tag">Customize output</span>
-      </h2>
+    <!-- STEP 0: CHOOSE BEAM -->
+    <section class="step active" id="step-0">
+      <div class="card">
+        <h2>Step 0 of 4 – Choose Your Beam</h2>
+        <p>Set up a simple-span wood beam with uniform load. We’ll walk through the math step by step.</p>
 
-      <h3>Project info</h3>
-      <div class="field-grid">
-        <div class="field">
-          <label for="projectName">Project name</label>
-          <input id="projectName" type="text" placeholder="e.g., Tomlinson House Renovation" />
-        </div>
-        <div class="field">
-          <label for="projectNumber">Project number</label>
-          <input id="projectNumber" type="text" placeholder="e.g., P-2025-001" />
-        </div>
-        <div class="field">
-          <label for="drawingDate">Drawing date</label>
-          <input id="drawingDate" type="date" />
-        </div>
-      </div>
+        <div class="grid-2">
+          <div>
+            <h3>Geometry &amp; Material</h3>
+            <label>Span length \(L\) (ft)</label>
+            <input type="number" id="L-ft" value="16" step="0.1" />
 
-      <h3>Design criteria</h3>
-      <div class="field-grid">
-        <div class="field">
-          <label for="buildingCode">Building code</label>
-          <select id="buildingCode">
-            <option value="">(leave blank)</option>
-            <option value="IBC 2015">IBC 2015</option>
-            <option value="IBC 2018">IBC 2018</option>
-            <option value="IBC 2021">IBC 2021</option>
-            <option value="IBC 2024">IBC 2024</option>
-          </select>
-        </div>
-        <div class="field">
-          <label for="asceEdition">ASCE 7 edition</label>
-          <select id="asceEdition">
-            <option value="">(leave blank)</option>
-            <option value="ASCE 7-10">ASCE 7-10</option>
-            <option value="ASCE 7-16">ASCE 7-16</option>
-            <option value="ASCE 7-22">ASCE 7-22</option>
-          </select>
-        </div>
-        <div class="field">
-          <label for="riskCategory">Risk category</label>
-          <select id="riskCategory">
-            <option value="">(leave blank)</option>
-            <option value="Risk Category I">Risk Category I</option>
-            <option value="Risk Category II">Risk Category II</option>
-            <option value="Risk Category III">Risk Category III</option>
-            <option value="Risk Category IV">Risk Category IV</option>
-          </select>
-        </div>
-        <div class="field">
-          <label for="siteClass">Seismic site class</label>
-          <select id="siteClass">
-            <option value="">(leave blank)</option>
-            <option value="Site Class A">Site Class A</option>
-            <option value="Site Class B">Site Class B</option>
-            <option value="Site Class BC">Site Class BC</option>
-            <option value="Site Class C">Site Class C</option>
-            <option value="Site Class CD">Site Class CD</option>
-            <option value="Site Class D">Site Class D</option>
-            <option value="Site Class DE">Site Class DE</option>
-            <option value="Site Class E">Site Class E</option>
-            <option value="Site Class F">Site Class F</option>
-          </select>
-        </div>
-        <div class="field">
-          <label for="windExposure">Wind exposure category</label>
-          <select id="windExposure">
-            <option value="">(leave blank)</option>
-            <option value="Exposure B">Exposure B</option>
-            <option value="Exposure C">Exposure C</option>
-            <option value="Exposure D">Exposure D</option>
-          </select>
-        </div>
-        <div class="field">
-          <label for="pg">Ground snow, Pg (psf)</label>
-          <input id="pg" type="number" step="0.1" placeholder="e.g., 30" />
-        </div>
-        <div class="field">
-          <label for="pf">Flat roof snow, pf (psf)</label>
-          <input id="pf" type="number" step="0.1" placeholder="e.g., 21" />
-        </div>
-        <div class="field">
-          <label for="vult">V<sub>ult</sub> (mph)</label>
-          <input id="vult" type="number" step="1" placeholder="e.g., 115" />
-        </div>
-        <div class="field">
-          <label for="vasd">V<sub>asd</sub> (mph)</label>
-          <input id="vasd" type="number" step="1" placeholder="e.g., 89" />
-        </div>
-        <div class="field">
-          <label for="sds">SDS (g)</label>
-          <input id="sds" type="number" step="0.01" placeholder="e.g., 0.85" />
-        </div>
-        <div class="field">
-          <label for="sd1">SD1 (g)</label>
-          <input id="sd1" type="number" step="0.01" placeholder="e.g., 0.42" />
-        </div>
-      </div>
+            <label style="margin-top:0.6rem;">Width \(b\) (in)</label>
+            <input type="number" id="b-in" value="3.5" step="0.01" />
 
-      <h3>Include these sections</h3>
-      <p class="output-subtitle">
-        Uncheck anything your project doesn’t use (for example, no masonry on a small steel-framed retrofit).
-      </p>
+            <label style="margin-top:0.6rem;">Depth \(d\) (in)</label>
+            <input type="number" id="d-in" value="11.25" step="0.01" />
 
-      <div class="section-grid">
-        <label class="checkbox-pill">
-          <input type="checkbox" id="chk-general" checked />
-          <span>A. General requirements</span>
-        </label>
-        <label class="checkbox-pill">
-          <input type="checkbox" id="chk-codes" checked />
-          <span>B. Codes &amp; design criteria</span>
-        </label>
-        <label class="checkbox-pill">
-          <input type="checkbox" id="chk-qa" checked />
-          <span>C. QA / testing / special inspections</span>
-        </label>
-        <label class="checkbox-pill">
-          <input type="checkbox" id="chk-geotech" checked />
-          <span>D. Geotechnical &amp; foundations</span>
-        </label>
-        <label class="checkbox-pill">
-          <input type="checkbox" id="chk-concrete" checked />
-          <span>E. Cast-in-place concrete</span>
-        </label>
-        <label class="checkbox-pill">
-          <input type="checkbox" id="chk-masonry" checked />
-          <span>F. Structural masonry</span>
-        </label>
-        <label class="checkbox-pill">
-          <input type="checkbox" id="chk-steel" checked />
-          <span>G. Structural steel</span>
-        </label>
-        <label class="checkbox-pill">
-          <input type="checkbox" id="chk-deck-cfs" checked />
-          <span>H. Metal deck &amp; cold-formed steel</span>
-        </label>
-        <label class="checkbox-pill">
-          <input type="checkbox" id="chk-wood" checked />
-          <span>I. Wood &amp; mass timber</span>
-        </label>
-        <label class="checkbox-pill">
-          <input type="checkbox" id="chk-submittals" checked />
-          <span>J. Submittals &amp; delegated design</span>
-        </label>
-        <label class="checkbox-pill">
-          <input type="checkbox" id="chk-construction-loads" checked />
-          <span>K. Construction loads &amp; temporary conditions</span>
-        </label>
-      </div>
+            <label style="margin-top:0.6rem;">Species / grade</label>
+            <select id="species">
+              <option>No. 2 DF-L (example)</option>
+              <option>No. 2 SPF</option>
+              <option>No. 1 Southern Pine</option>
+            </select>
 
-      <div class="button-row">
-        <button class="primary" id="btn-generate" type="button">
-          🔧 Generate Notes
-        </button>
-        <button class="secondary" id="btn-copy" type="button">
-          📋 Copy to clipboard
-        </button>
+            <label style="margin-top:0.6rem;">Design method</label>
+            <div class="pill-toggle" id="design-method-toggle">
+              <button type="button" data-value="ASD" class="active">ASD</button>
+              <button type="button" data-value="LRFD">LRFD</button>
+            </div>
+
+            <div class="small-note">
+              Right now we’ll behave like ASD (service-level stresses), even if you flip to LRFD.
+            </div>
+          </div>
+
+          <div>
+            <h3>Loads &amp; Derived Section Properties</h3>
+            <label>Dead load \(w_D\) (lb/ft)</label>
+            <input type="number" id="wD" value="200" step="5" />
+
+            <label style="margin-top:0.6rem;">Live load \(w_L\) (lb/ft)</label>
+            <input type="number" id="wL" value="400" step="5" />
+
+            <p class="small-note">
+              For ASD we’ll start with \( w = 1.0 w_D + 1.0 w_L \).
+            </p>
+
+            <div id="derived-properties" class="small-note" style="margin-top:0.75rem;">
+              <!-- Filled by JS -->
+            </div>
+          </div>
+        </div>
+
+        <button class="btn-primary" id="btn-to-moment">Start with Moment</button>
       </div>
     </section>
 
-    <section class="card output">
-      <h2>Generated Notes</h2>
-      <p class="output-subtitle">
-        This is plain text. After generating, copy it into your drafting software, Word template,
-        or CAD/BIM general-notes sheet and adapt as needed.
-      </p>
-      <textarea id="output" readonly></textarea>
-      <div class="copy-status" id="copy-status" aria-live="polite"></div>
+    <!-- STEP 1: MOMENT -->
+    <section class="step" id="step-1">
+      <div class="card">
+        <h2>Step 1 of 4 – Moment &amp; Bending</h2>
+
+        <h3>1. Maximum moment \(M_{\max}\)</h3>
+        <p>For a simply supported beam with uniform load \(w\) (lb/ft) over span \(L\) (ft), pick the correct formula for the <strong>maximum bending moment</strong> \(M_{\max}\).</p>
+
+        <div class="radio-row">
+          <input type="radio" name="momentFormula" id="momA" value="correct" />
+          <label for="momA">\( M_{\max} = \dfrac{w L^{2}}{8} \)</label>
+        </div>
+        <div class="radio-row">
+          <input type="radio" name="momentFormula" id="momB" value="wrong1" />
+          <label for="momB">\( M_{\max} = \dfrac{w L}{8} \)</label>
+        </div        >
+        <div class="radio-row">
+          <input type="radio" name="momentFormula" id="momC" value="wrong2" />
+          <label for="momC">\( M_{\max} = \dfrac{w L^{2}}{2} \)</label>
+        </div>
+        <p class="small-note">Units check: \(w\,[\text{lb/ft}] \times L^{2}[\text{ft}^2] \Rightarrow \text{lb·ft}\).</p>
+
+        <hr style="margin:1.25rem 0; border:none; border-top:1px solid #e5e7eb;">
+
+        <h3>2. Section modulus \(S\)</h3>
+        <p>For a rectangular section of width \(b\) and depth \(d\), choose the correct section modulus.</p>
+        <div class="radio-row">
+          <input type="radio" name="SFormula" id="sA" value="correct" />
+          <label for="sA">\( S = \dfrac{b d^{2}}{6} \)</label>
+        </div>
+        <div class="radio-row">
+          <input type="radio" name="SFormula" id="sB" value="wrong1" />
+          <label for="sB">\( S = \dfrac{b d}{6} \)</label>
+        </div>
+        <div class="radio-row">
+          <input type="radio" name="SFormula" id="sC" value="wrong2" />
+          <label for="sC">\( S = \dfrac{b d^{3}}{12} \)</label>
+        </div>
+
+        <h3>3. Bending stress \(f_b\)</h3>
+        <p>Pick the correct relationship between \(f_b\), \(M_{\max}\) and \(S\).</p>
+        <div class="radio-row">
+          <input type="radio" name="fbFormula" id="fbA" value="correct" />
+          <label for="fbA">\( f_b = \dfrac{M_{\max}}{S} \)</label>
+        </div>
+        <div class="radio-row">
+          <input type="radio" name="fbFormula" id="fbB" value="wrong1" />
+          <label for="fbB">\( f_b = \dfrac{S}{M_{\max}} \)</label>
+        </div>
+        <div class="radio-row">
+          <input type="radio" name="fbFormula" id="fbC" value="wrong2" />
+          <label for="fbC">\( f_b = M_{\max} \, S \)</label>
+        </div>
+
+        <h3>4. Adjusted allowable stress \(F'_b\)</h3>
+        <p>For ASD bending per NDS, choose the correct expression for adjusted allowable bending stress.</p>
+        <div class="radio-row">
+          <input type="radio" name="FbAdjFormula" id="FbA" value="correct" />
+          <label for="FbA">\( F'_b = F_b \, C_D \, C_M \, C_t \, C_F \, C_i \)</label>
+        </div>
+        <div class="radio-row">
+          <input type="radio" name="FbAdjFormula" id="FbB" value="wrong1" />
+          <label for="FbB">\( F'_b = \dfrac{F_b}{C_D C_M C_t} \)</label>
+        </div>
+        <div class="radio-row">
+          <input type="radio" name="FbAdjFormula" id="FbC" value="wrong2" />
+          <label for="FbC">\( F'_b = F_b \, C_D \)</label>
+        </div>
+
+        <h3>5. Pass / fail inequality</h3>
+        <p>Which inequality represents a <strong>passing</strong> bending check in ASD?</p>
+        <div class="radio-row">
+          <input type="radio" name="ineq" id="ineqA" value="correct" />
+          <label for="ineqA">\( f_b \le F'_b \)</label>
+        </div>
+        <div class="radio-row">
+          <input type="radio" name="ineq" id="ineqB" value="wrong1" />
+          <label for="ineqB">\( f_b \ge F'_b \)</label>
+        </div>
+        <div class="radio-row">
+          <input type="radio" name="ineq" id="ineqC" value="wrong2" />
+          <label for="ineqC">Beam passes only if \( f_b = F'_b \) exactly.</label>
+        </div>
+
+        <h3 style="margin-top:1.25rem;">Optional: design values for the report</h3>
+        <div class="grid-2">
+          <div>
+            <label>Base bending stress \(F_b\) (psi)</label>
+            <input type="number" id="Fb-base" value="1000" step="10" />
+          </div>
+          <div>
+            <label>Duration factor \(C_D\)</label>
+            <input type="number" id="Cd-b" value="1.0" step="0.05" />
+          </div>
+          <div>
+            <label>Moisture factor \(C_M\)</label>
+            <input type="number" id="Cm-b" value="1.0" step="0.05" />
+          </div>
+          <div>
+            <label>Temperature factor \(C_t\)</label>
+            <input type="number" id="Ct-b" value="1.0" step="0.05" />
+          </div>
+          <div>
+            <label>Size factor \(C_F\)</label>
+            <input type="number" id="Cf-b" value="1.0" step="0.05" />
+          </div>
+          <div>
+            <label>Incising factor \(C_i\)</label>
+            <input type="number" id="Ci-b" value="1.0" step="0.05" />
+          </div>
+        </div>
+
+        <button class="btn-primary" id="btn-check-moment">Check Moment</button>
+        <button class="btn-secondary" id="btn-to-shear" style="display:none;">Next: Check Shear</button>
+
+        <div id="moment-feedback" class="feedback" style="display:none;"></div>
+      </div>
     </section>
 
-    <footer>
-      Structural General Notes Generator – provided as-is, with no warranty or guarantee.
-    </footer>
-  </div>
+    <!-- STEP 2: SHEAR -->
+    <section class="step" id="step-2">
+      <div class="card">
+        <h2>Step 2 of 4 – Shear</h2>
 
+        <h3>1. Maximum shear \(V_{\max}\)</h3>
+        <p>For the same simple span and uniform load, what is the <strong>maximum end reaction / shear</strong> \(V_{\max}\)?</p>
+
+        <div class="radio-row">
+          <input type="radio" name="VFormula" id="V1" value="correct" />
+          <label for="V1">\( V_{\max} = \dfrac{w L}{2} \)</label>
+        </div>
+        <div class="radio-row">
+          <input type="radio" name="VFormula" id="V2" value="wrong1" />
+          <label for="V2">\( V_{\max} = w L^{2} \)</label>
+        </div>
+        <div class="radio-row">
+          <input type="radio" name="VFormula" id="V3" value="wrong2" />
+          <label for="V3">\( V_{\max} = \dfrac{w}{2 L} \)</label>
+        </div>
+
+        <h3>2. Shear stress \(f_v\) in a rectangular section</h3>
+        <p>For a rectangular section of area \(A = b d\), pick the correct average shear stress expression used in NDS.</p>
+
+        <div class="radio-row">
+          <input type="radio" name="fvFormula" id="fv1" value="correct" />
+          <label for="fv1">\( f_v = \dfrac{3}{2}\dfrac{V_{\max}}{A} \)</label>
+        </div>
+        <div class="radio-row">
+          <input type="radio" name="fvFormula" id="fv2" value="wrong1" />
+          <label for="fv2">\( f_v = \dfrac{V_{\max}}{S} \)</label>
+        </div>
+        <div class="radio-row">
+          <input type="radio" name="fvFormula" id="fv3" value="wrong2" />
+          <label for="fv3">\( f_v = \dfrac{M_{\max}}{b d} \)</label>
+        </div>
+
+        <h3>3. Adjusted allowable shear \(F'_v\)</h3>
+        <p>Choose the correct expression for adjusted allowable shear stress in ASD.</p>
+        <div class="radio-row">
+          <input type="radio" name="FvAdjFormula" id="Fv1" value="correct" />
+          <label for="Fv1">\( F'_v = F_v \, C_D \, C_M \, C_t \)</label>
+        </div>
+        <div class="radio-row">
+          <input type="radio" name="FvAdjFormula" id="Fv2" value="wrong1" />
+          <label for="Fv2">\( F'_v = \dfrac{F_v}{C_D C_M} \)</label>
+        </div>
+        <div class="radio-row">
+          <input type="radio" name="FvAdjFormula" id="Fv3" value="wrong2" />
+          <label for="Fv3">\( F'_v = F_v C_D C_M C_t C_F \)</label>
+        </div>
+
+        <h3>4. Pass / fail inequality</h3>
+        <p>Which inequality represents a <strong>passing</strong> shear check in ASD?</p>
+        <div class="radio-row">
+          <input type="radio" name="ineqShear" id="ineqSv1" value="correct" />
+          <label for="ineqSv1">\( f_v \le F'_v \)</label>
+        </div>
+        <div class="radio-row">
+          <input type="radio" name="ineqShear" id="ineqSv2" value="wrong1" />
+          <label for="ineqSv2">\( f_v \ge F'_v \)</label>
+        </div>
+        <div class="radio-row">
+          <input type="radio" name="ineqShear" id="ineqSv3" value="wrong2" />
+          <label for="ineqSv3">Check passes only if \( f_v = F'_v \).</label>
+        </div>
+
+        <h3 style="margin-top:1.25rem;">Optional: design values for the report</h3>
+        <div class="grid-2">
+          <div>
+            <label>Base shear stress \(F_v\) (psi)</label>
+            <input type="number" id="Fv-base" value="135" step="5" />
+          </div>
+          <div>
+            <label>Duration factor \(C_D\)</label>
+            <input type="number" id="Cd-v" value="1.0" step="0.05" />
+          </div>
+          <div>
+            <label>Moisture factor \(C_M\)</label>
+            <input type="number" id="Cm-v" value="1.0" step="0.05" />
+          </div>
+          <div>
+            <label>Temperature factor \(C_t\)</label>
+            <input type="number" id="Ct-v" value="1.0" step="0.05" />
+          </div>
+        </div>
+
+        <button class="btn-primary" id="btn-check-shear">Check Shear</button>
+        <button class="btn-secondary" id="btn-to-deflection" style="display:none;">Next: Check Deflection</button>
+
+        <div id="shear-feedback" class="feedback" style="display:none;"></div>
+      </div>
+    </section>
+
+    <!-- STEP 3: DEFLECTION -->
+    <section class="step" id="step-3">
+      <div class="card">
+        <h2>Step 3 of 4 – Deflection</h2>
+
+        <h3>1. Maximum deflection \( \Delta_{\max} \)</h3>
+        <p>For the same simple span and uniform load, choose the correct formula for maximum deflection at midspan.</p>
+
+        <div class="radio-row">
+          <input type="radio" name="DeltaFormula" id="D1" value="correct" />
+          <label for="D1">\( \Delta_{\max} = \dfrac{5 w L^{4}}{384 E I} \)</label>
+        </div>
+        <div class="radio-row">
+          <input type="radio" name="DeltaFormula" id="D2" value="wrong1" />
+          <label for="D2">\( \Delta_{\max} = \dfrac{w L^{3}}{48 E I} \)</label>
+        </div>
+        <div class="radio-row">
+          <input type="radio" name="DeltaFormula" id="D3" value="wrong2" />
+          <label for="D3">\( \Delta_{\max} = \dfrac{w L^{4}}{8 E I} \)</label>
+        </div>
+
+        <h3>2. Deflection limit</h3>
+        <p>For a floor supporting typical finishes, pick a common live-load deflection limit.</p>
+
+        <div class="radio-row">
+          <input type="radio" name="DeflLimitFormula" id="DL1" value="correct" />
+          <label for="DL1">\( \Delta_{\text{allow}} = \dfrac{L}{360} \)</label>
+        </div>
+        <div class="radio-row">
+          <input type="radio" name="DeflLimitFormula" id="DL2" value="wrong1" />
+          <label for="DL2">\( \Delta_{\text{allow}} = \dfrac{L}{120} \)</label>
+        </div>
+        <div class="radio-row">
+          <input type="radio" name="DeflLimitFormula" id="DL3" value="wrong2" />
+          <label for="DL3">\( \Delta_{\text{allow}} = \dfrac{L}{60} \)</label>
+        </div>
+
+        <h3>3. Pass / fail inequality</h3>
+        <p>Which inequality represents a <strong>passing</strong> deflection check?</p>
+        <div class="radio-row">
+          <input type="radio" name="DeflIneq" id="DI1" value="correct" />
+          <label for="DI1">\( \Delta_{\max} \le \Delta_{\text{allow}} \)</label>
+        </div>
+        <div class="radio-row">
+          <input type="radio" name="DeflIneq" id="DI2" value="wrong1" />
+          <label for="DI2">\( \Delta_{\max} \ge \Delta_{\text{allow}} \)</label>
+        </div>
+        <div class="radio-row">
+          <input type="radio" name="DeflIneq" id="DI3" value="wrong2" />
+          <label for="DI3">Check passes only if \( \Delta_{\max} = \Delta_{\text{allow}} \).</label>
+        </div>
+
+        <h3 style="margin-top:1.25rem;">Optional: stiffness values for the report</h3>
+        <div class="grid-2">
+          <div>
+            <label>Elastic modulus \(E\) (psi)</label>
+            <input type="number" id="E-psi" value="1600000" step="50000" />
+          </div>
+          <div>
+            <label>Deflection limit ratio (e.g. 360 for \(L/360\))</label>
+            <input type="number" id="defl-ratio" value="360" step="10" />
+          </div>
+        </div>
+
+        <button class="btn-primary" id="btn-check-deflection">Check Deflection</button>
+        <button class="btn-secondary" id="btn-to-report" style="display:none;">Create Report</button>
+
+        <div id="deflection-feedback" class="feedback" style="display:none;"></div>
+      </div>
+    </section>
+
+    <!-- STEP 4: REPORT -->
+    <section class="step" id="step-4">
+      <div class="card">
+        <h2>Beam Report</h2>
+        <p>Summary of your beam, loads, and conceptual + numeric checks.</p>
+
+        <h3>Inputs</h3>
+        <table class="report-table">
+          <tbody>
+            <tr><th>Span \(L\)</th><td id="r-L"></td></tr>
+            <tr><th>Section</th><td id="r-section"></td></tr>
+            <tr><th>Loads</th><td id="r-loads"></td></tr>
+          </tbody>
+        </table>
+
+        <h3 style="margin-top:1.25rem;">Numeric Results (prototype)</h3>
+        <table class="report-table">
+          <thead>
+            <tr><th>Quantity</th><th>Value</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Maximum moment \(M_{\max}\)</td><td id="r-M"></td></tr>
+            <tr><td>Maximum shear \(V_{\max}\)</td><td id="r-V"></td></tr>
+            <tr><td>Maximum deflection \(\Delta_{\max}\)</td><td id="r-Delta"></td></tr>
+            <tr><td>Section modulus \(S\)</td><td id="r-S"></td></tr>
+            <tr><td>Moment of inertia \(I\)</td><td id="r-I"></td></tr>
+            <tr><td>Bending stress \(f_b\)</td><td id="r-fb"></td></tr>
+            <tr><td>Allowable bending \(F'_b\)</td><td id="r-Fb"></td></tr>
+            <tr><td>Shear stress \(f_v\)</td><td id="r-fv"></td></tr>
+            <tr><td>Allowable shear \(F'_v\)</td><td id="r-Fv"></td></tr>
+            <tr><td>Deflection limit \(\Delta_{\text{allow}}\)</td><td id="r-Delta-allow"></td></tr>
+          </tbody>
+        </table>
+
+        <h3 style="margin-top:1.25rem;">Conceptual Checks</h3>
+        <table class="report-table">
+          <thead>
+            <tr><th>Topic</th><th>Status</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Moment &amp; bending logic</td><td id="r-moment-status"></td></tr>
+            <tr><td>Shear logic</td><td id="r-shear-status"></td></tr>
+            <tr><td>Deflection logic</td><td id="r-defl-status"></td></tr>
+          </tbody>
+        </table>
+
+        <p class="small-note" style="margin-top:1rem;">
+          If this felt like a lot of steps for one beam, congratulations: you’re thinking like a structural engineer.
+        </p>
+      </div>
+    </section>
+  </main>
+
+  <!-- App logic -->
   <script>
-    var SHORT_BLANK = "____________";
+    const state = {
+      method: "ASD",
+      conceptual: {
+        moment: false,
+        shear: false,
+        deflection: false,
+      },
+    };
 
-    var disclaimerBlock = "DISCLAIMER\n" +
-"=========\n" +
-"This generic note set is provided for educational and drafting convenience only. It is not project-specific engineering, does not create an Engineer-of-Record or client relationship, and is not a substitute for review and approval by a licensed Professional Engineer familiar with the project, codes, and jurisdiction. The Structural Engineering Podcast, its hosts, and contributors assume no responsibility for any use, modification, or omission of these notes.\n\n";
+    // ----- helpers -----
+    function selectStep(stepIndex) {
+      document.querySelectorAll(".step").forEach(sec => {
+        sec.classList.remove("active");
+      });
+      document.querySelector(`#step-${stepIndex}`).classList.add("active");
 
-    var sections = [
-      {
-        id: "general",
-        checkboxId: "chk-general",
-        heading: "A. GENERAL REQUIREMENTS & GOVERNING DOCUMENTS",
-        body:
-"THESE STRUCTURAL DRAWINGS ARE PART OF THE CONTRACT DOCUMENTS AND SHALL BE USED IN CONJUNCTION WITH THE ARCHITECTURAL, CIVIL, MECHANICAL, ELECTRICAL, PLUMBING, FIRE PROTECTION, AND PROJECT MANUAL/SPECIFICATIONS. WHERE DISCREPANCIES EXIST BETWEEN DISCIPLINES, NOTIFY THE STRUCTURAL ENGINEER OF RECORD (SER) FOR CLARIFICATION PRIOR TO PROCEEDING WITH THE AFFECTED WORK. DO NOT SCALE DRAWINGS.\n\n" +
-"THE CONTRACTOR SHALL VERIFY ALL EXISTING CONDITIONS, DIMENSIONS, AND ELEVATIONS IN THE FIELD PRIOR TO FABRICATION OR CONSTRUCTION. CONFLICTING, MISSING, OR UNCLEAR INFORMATION SHALL BE BROUGHT TO THE ATTENTION OF THE SER BEFORE WORK PROCEEDS.\n\n" +
-"THESE DRAWINGS DEPICT THE COMPLETED STRUCTURE ONLY. THE CONTRACTOR IS SOLELY RESPONSIBLE FOR MEANS, METHODS, SEQUENCING, TEMPORARY SUPPORTS, SHORING, BRACING, CONSTRUCTION LOADS, AND SAFETY REQUIRED TO COMPLETE THE WORK.\n\n" +
-"FIELD MODIFICATIONS TO STRUCTURAL MEMBERS, CONNECTIONS, REINFORCING, OR SPECIFIED DETAILS ARE NOT PERMITTED WITHOUT PRIOR WRITTEN APPROVAL FROM THE SER.\n\n" +
-"SHOP DRAWING, SUBMITTAL, AND RFI RESPONSES BY THE SER ARE FOR GENERAL CONFORMANCE WITH DESIGN INTENT AND DO NOT RELIEVE THE CONTRACTOR OF RESPONSIBILITY FOR COORDINATION, DIMENSIONS, OR CONSTRUCTABILITY.\n\n" +
-"WHERE TYPICAL DETAILS AND GENERAL NOTES APPEAR ON THESE DRAWINGS, THEY APPLY TO ALL SIMILAR CONDITIONS, WHETHER OR NOT INDICATED AT EACH LOCATION, UNLESS SPECIFICALLY NOTED OTHERWISE (UNO).\n\n" +
-"COORDINATE OPENINGS, SLEEVES, BLOCKOUTS, AND EMBEDDED ITEMS REQUIRED BY OTHER TRADES WITH STRUCTURAL FRAMING AND REINFORCING. PENETRATIONS NOT SHOWN SHALL BE LOCATED AND DETAILED IN COORDINATION WITH THE SER BEFORE INSTALLATION.\n\n" +
-"ALL WORK SHALL COMPLY WITH APPLICABLE FEDERAL, STATE, AND LOCAL SAFETY REGULATIONS (INCLUDING OSHA) AND THE OWNER’S SAFETY POLICIES. THE CONTRACTOR IS RESPONSIBLE FOR JOBSITE SAFETY AND FOR PROTECTING ADJACENT STRUCTURES, UTILITIES, AND THE PUBLIC."
-      },
-      {
-        id: "codes",
-        checkboxId: "chk-codes",
-        heading: "B. CODES, STANDARDS, AND DESIGN CRITERIA",
-        body: ""  // dynamic
-      },
-      {
-        id: "qa",
-        checkboxId: "chk-qa",
-        heading: "C. QUALITY ASSURANCE, TESTING, AND SPECIAL INSPECTIONS",
-        body:
-"SPECIAL INSPECTIONS AND STRUCTURAL TESTS SHALL BE PROVIDED IN ACCORDANCE WITH IBC CHAPTER 17, THE ADOPTED BUILDING CODE, AND THE STATEMENT OF SPECIAL INSPECTIONS (SSI) PREPARED BY THE REGISTERED DESIGN PROFESSIONAL IN RESPONSIBLE CHARGE (RDPIRC) AND APPROVED BY THE BUILDING OFFICIAL.\n\n" +
-"THE STATEMENT OF SPECIAL INSPECTIONS AND ANY ASSOCIATED SCHEDULES (STEEL, CONCRETE, MASONRY, WOOD, SOILS, DEEP FOUNDATIONS, SPRAYED FIRE-RESISTIVE MATERIALS, FIRE-RESISTANT PENETRATIONS, ETC.) SHALL BE INCLUDED IN THE CONSTRUCTION DOCUMENTS OR SUBMITTED SEPARATELY, AS REQUIRED BY THE JURISDICTION.\n\n" +
-"THE OWNER SHALL ENGAGE INDEPENDENT TESTING AND INSPECTION AGENCIES, ACCEPTABLE TO THE BUILDING OFFICIAL AND SER, TO PERFORM REQUIRED TESTS AND SPECIAL INSPECTIONS. THESE AGENCIES SHALL NOT BE EMPLOYED BY THE CONTRACTOR OR ANY SUBCONTRACTOR RESPONSIBLE FOR THE WORK BEING INSPECTED.\n\n" +
-"THE CONTRACTOR SHALL NOTIFY THE TESTING AND INSPECTION AGENCIES IN ADVANCE OF ALL WORK REQUIRING SPECIAL INSPECTION OR TESTING AND SHALL PROVIDE SAFE ACCESS TO THE WORK AND APPROVED CONSTRUCTION DOCUMENTS.\n\n" +
-"NONCONFORMING WORK OR TEST RESULTS SHALL BE REPORTED BY THE SPECIAL INSPECTOR TO THE CONTRACTOR AND SER. NONCONFORMING WORK SHALL BE CORRECTED PRIOR TO BEING CONCEALED OR BEFORE PROCEEDING WITH WORK THAT DEPENDS ON IT.\n\n" +
-"A FINAL REPORT OF SPECIAL INSPECTIONS, SEALED AS REQUIRED BY THE BUILDING OFFICIAL, SHALL BE SUBMITTED AT COMPLETION OF CONSTRUCTION TO DOCUMENT THAT ALL REQUIRED INSPECTIONS AND TESTS HAVE BEEN PERFORMED AND THAT NONCONFORMING ITEMS HAVE BEEN RESOLVED.\n\n" +
-"OBSERVATION OF CONSTRUCTION BY THE SER OR THEIR REPRESENTATIVES IS FOR GENERAL CONFORMANCE WITH DESIGN INTENT AND DOES NOT CONSTITUTE CONTINUOUS INSPECTION, SPECIAL INSPECTION, OR SUPERVISION OF THE CONTRACTOR’S MEANS AND METHODS."
-      },
-      {
-        id: "geotech",
-        checkboxId: "chk-geotech",
-        heading: "D. GEOTECHNICAL INFORMATION, EARTHWORK, AND FOUNDATIONS",
-        body:
-"FOUNDATIONS ARE DESIGNED BASED ON THE SITE-SPECIFIC GEOTECHNICAL REPORT IDENTIFIED IN SECTION B. THE CONTRACTOR SHALL REVIEW AND COMPLY WITH ALL RECOMMENDATIONS THEREIN RELATED TO EXCAVATION, FILL, COMPACTION, GROUNDWATER CONTROL, AND FOUNDATION CONSTRUCTION.\n\n" +
-"SUBGRADE PREPARATION SHALL INCLUDE STRIPPING TOPSOIL, ORGANICS, DEBRIS, LOOSE, SOFT, SATURATED, EXPANSIVE, OR OTHERWISE UNSUITABLE MATERIAL FROM ALL FOUNDATION AND SLAB SUPPORT AREAS. SUBGRADES SHALL BE PROOF-ROLLED AND ANY UNSUITABLE MATERIAL REPLACED WITH COMPACTED STRUCTURAL FILL IN ACCORDANCE WITH THE GEOTECHNICAL REPORT.\n\n" +
-"STRUCTURAL FILL BENEATH FOUNDATIONS AND SLABS-ON-GRADE SHALL MEET THE GRADATION, PLASTICITY, AND COMPACTION CRITERIA IN THE GEOTECHNICAL REPORT. TYPICAL COMPACTION: ≥95 PERCENT OF MODIFIED PROCTOR (ASTM D1557) FOR FOUNDATIONS AND ≥92 PERCENT FOR SLABS, UNLESS OTHERWISE RECOMMENDED.\n\n" +
-"PROTECT EXPOSED SUBGRADES AND EXCAVATIONS FROM DISTURBANCE DUE TO FREEZE-THAW, PRECIPITATION, AND CONSTRUCTION TRAFFIC. REMOVE STANDING WATER FROM EXCAVATIONS PRIOR TO PLACING FILL OR CONCRETE AND PROVIDE DEWATERING MEASURES AS RECOMMENDED.\n\n" +
-"FOUNDATION TYPES (SPREAD FOOTINGS, THICKENED SLABS, GRADE BEAMS, PIERS, PILES, HELICAL ANCHORS, ETC.) AND DESIGN ASSUMPTIONS SHALL BE INDICATED ON THE DRAWINGS. THE CONTRACTOR SHALL NOT CHANGE FOUNDATION TYPE OR ELEVATION WITHOUT APPROVAL FROM THE SER AND GEOTECHNICAL ENGINEER.\n\n" +
-"BOTTOM OF EXTERIOR FOOTING ELEVATIONS SHALL BE AT OR BELOW THE CODE-REQUIRED FROST DEPTH UNLESS OTHERWISE JUSTIFIED BY THE GEOTECHNICAL ENGINEER AND APPROVED BY THE BUILDING OFFICIAL.\n\n" +
-"RETAINING WALLS, BASEMENT WALLS, AND OTHER EARTH-RETAINING STRUCTURES SHALL BE BACKFILLED WITH SUITABLE MATERIALS AND DRAINED PER THE GEOTECHNICAL REPORT AND STRUCTURAL DETAILS. DO NOT PLACE BACKFILL AGAINST WALLS UNTIL CONCRETE HAS ACHIEVED SUFFICIENT STRENGTH AND REQUIRED STRUCTURAL BRACING IS IN PLACE."
-      },
-      {
-        id: "concrete",
-        checkboxId: "chk-concrete",
-        heading: "E. CAST-IN-PLACE CONCRETE",
-        body:
-"CONCRETE DESIGN AND CONSTRUCTION SHALL CONFORM TO ACI 318 AND ACI 301, AS MODIFIED BY THE ADOPTED BUILDING CODE AND PROJECT SPECIFICATIONS.\n\n" +
-"CONCRETE COMPRESSIVE STRENGTHS AT 28 DAYS, f'c, SHALL BE AS INDICATED ON THE DRAWINGS FOR FOUNDATIONS, SLABS-ON-GRADE, ELEVATED SLABS, WALLS, BEAMS, COLUMNS, AND TOPPINGS. A CONCRETE MIX SCHEDULE SHALL IDENTIFY STRENGTH, MAXIMUM AGGREGATE SIZE, SLUMP, AIR CONTENT, AND ADMIXTURES FOR EACH MIX.\n\n" +
-"REINFORCING BARS SHALL CONFORM TO ASTM A615 GRADE 60 OR ASTM A706 GRADE 60 WHERE WELDING OR DUCTILE DETAILING IS REQUIRED. WELDED WIRE REINFORCEMENT (WWR) SHALL CONFORM TO ASTM A1064.\n\n" +
-"MINIMUM CONCRETE COVER TO REINFORCING SHALL CONFORM TO ACI 318 AND EXPOSURE CONDITIONS UNLESS GREATER COVER IS INDICATED ON THE DRAWINGS.\n\n" +
-"LAP SPLICES, DEVELOPMENT LENGTHS, AND ANCHORAGE OF REINFORCING SHALL COMPLY WITH ACI 318 AND PROJECT BAR SCHEDULES. DO NOT RELOCATE SPLICES WITHOUT SER APPROVAL.\n\n" +
-"CONSTRUCTION JOINTS AND CONTRACTION JOINTS IN SLABS-ON-GRADE AND ELEVATED SLABS SHALL BE LOCATED AS SHOWN ON THE DRAWINGS OR, WHERE NOT SHOWN, SUBMITTED TO THE SER FOR REVIEW PRIOR TO PLACEMENT.\n\n" +
-"EMBEDMENTS, ANCHOR BOLTS, SLEEVES, AND BLOCKOUTS SHALL BE ACCURATELY LOCATED AND SECURED PRIOR TO PLACEMENT OF CONCRETE. COORDINATE EMBEDDED ITEMS REQUIRED BY OTHER TRADES.\n\n" +
-"POST-INSTALLED ANCHORS IN HARDENED CONCRETE SHALL CONFORM TO APPROVED EVALUATION REPORTS (E.G., ICC-ES), BE INSTALLED BY QUALIFIED PERSONNEL, AND BE USED ONLY WITHIN THEIR APPROVED LOAD CAPACITIES. ADHESIVE ANCHORS IN SUSTAINED-TENSION OR SEISMIC APPLICATIONS SHALL COMPLY WITH ACI 318 QUALIFICATION AND INSTALLER REQUIREMENTS WHERE APPLICABLE.\n\n" +
-"SLABS, BEAMS, AND SHORING SHALL NOT BE OVERLOADED WITH CONSTRUCTION LOADS BEYOND THE CAPACITY OF THE PARTIALLY COMPLETED STRUCTURE. SHORING AND RESHORING SHALL BE DESIGNED BY THE CONTRACTOR AS REQUIRED BY THE CONSTRUCTION SEQUENCE."
-      },
-      {
-        id: "masonry",
-        checkboxId: "chk-masonry",
-        heading: "F. STRUCTURAL MASONRY",
-        body:
-"STRUCTURAL MASONRY DESIGN SHALL CONFORM TO TMS 402, AND MASONRY CONSTRUCTION SHALL CONFORM TO TMS 602, AS ADOPTED BY THE GOVERNING BUILDING CODE.\n\n" +
-"CONCRETE MASONRY UNITS (CMU) SHALL CONFORM TO ASTM C90 (LOADBEARING UNITS) UNLESS OTHERWISE SPECIFIED. CLAY MASONRY UNITS SHALL CONFORM TO APPLICABLE ASTM STANDARDS AS NOTED ON THE DRAWINGS OR IN THE SPECIFICATIONS.\n\n" +
-"MORTAR SHALL CONFORM TO ASTM C270, OF THE TYPE INDICATED ON THE DRAWINGS (E.G., TYPE S OR N FOR ABOVE-GRADE, TYPE M WHERE HIGH-STRENGTH OR SEVERE EXPOSURE IS REQUIRED). GROUT SHALL CONFORM TO ASTM C476.\n\n" +
-"SPECIFIED MASONRY COMPRESSIVE STRENGTH, f'm, SHALL BE AS INDICATED ON THE DRAWINGS. THE METHOD USED TO VERIFY f'm (UNIT STRENGTH METHOD OR PRISM TESTING) SHALL BE STATED IN THE PROJECT DOCUMENTS AND COORDINATED WITH THE TESTING AND INSPECTION AGENCY.\n\n" +
-"MASONRY REINFORCING BARS SHALL CONFORM TO ASTM A615 GRADE 60 OR ASTM A706 GRADE 60 WHERE REQUIRED FOR WELDING OR DUCTILE DETAILING. BAR SIZES, SPACING, AND LAP LENGTHS SHALL BE AS SHOWN ON THE DRAWINGS AND SHALL FOLLOW TMS 402 DEVELOPMENT AND SPLICE PROVISIONS.\n\n" +
-"UNLESS NOTED OTHERWISE, PROVIDE FULLY GROUTED CELLS AT REINFORCED MASONRY CELLS, JAMBS, PIERS, BOND BEAMS, AND AT OTHER LOCATIONS SHOWN ON THE DRAWINGS. GROUT LIFT HEIGHTS, CLEANOUTS, AND CONSOLIDATION SHALL COMPLY WITH TMS 602.\n\n" +
-"MASONRY QUALITY ASSURANCE, INSPECTION, AND TESTING SHALL FOLLOW THE VERIFICATION AND INSPECTION TABLES IN TMS 602 FOR THE QA LEVEL SELECTED FOR THE PROJECT. COORDINATE THESE REQUIREMENTS WITH THE STATEMENT OF SPECIAL INSPECTIONS.\n\n" +
-"CONTROL JOINTS, EXPANSION JOINTS, AND MOVEMENT JOINTS IN MASONRY SHALL BE LOCATED AND DETAILED AS SHOWN ON THE DRAWINGS. PROPOSED RELOCATIONS SHALL BE SUBMITTED TO THE SER FOR REVIEW.\n\n" +
-"ANCHORAGE OF MASONRY VENEERS, TIES TO BACKUP WALLS, AND OUT-OF-PLANE BRACING OF TALL MASONRY WALLS SHALL BE PROVIDED AS INDICATED ON THE DRAWINGS."
-      },
-      {
-        id: "steel",
-        checkboxId: "chk-steel",
-        heading: "G. STRUCTURAL STEEL",
-        body:
-"STRUCTURAL STEEL DESIGN SHALL CONFORM TO AISC 360, AND DETAILING AND FABRICATION SHALL CONFORM TO AISC 303. WHERE APPLICABLE, SEISMIC-FORCE-RESISTING SYSTEMS SHALL CONFORM TO AISC 341 AND AISC 358.\n\n" +
-"UNLESS NOTED OTHERWISE, STRUCTURAL STEEL MATERIALS SHALL CONFORM TO:\n\n" +
-"WIDE-FLANGE SHAPES: ASTM A992\n\n" +
-"STEEL PLATES, SHAPES, AND BARS: ASTM A36 OR ASTM A572 (GRADE AS INDICATED)\n\n" +
-"HOLLOW STRUCTURAL SECTIONS (HSS): ASTM A500 GRADE C\n\n" +
-"STEEL PIPE: ASTM A53 GRADE B\n\n" +
-"ANCHOR RODS: ASTM F1554 GRADE [36 / 55 / 105] WITH WELDABILITY SUPPLEMENT AS REQUIRED\n\n" +
-"BOLTS FOR PRIMARY STRUCTURAL CONNECTIONS SHALL CONFORM TO ASTM F3125 (E.G., GRADES A325 OR A490), WITH NUTS CONFORMING TO ASTM A563 AND WASHERS TO ASTM F436, UNLESS NOTED OTHERWISE. PRETENSIONED OR SLIP-CRITICAL JOINTS SHALL BE USED ONLY WHERE INDICATED OR REQUIRED BY DESIGN.\n\n" +
-"ALL WELDING SHALL CONFORM TO AWS D1.1 (STRUCTURAL STEEL) AND AWS D1.3 (COLD-FORMED STEEL), AS APPLICABLE. USE LOW-HYDROGEN ELECTRODES WITH MINIMUM TENSILE STRENGTH OF 70 KSI (E70XX) UNLESS OTHERWISE STATED. WELDERS AND WELDING PROCEDURES SHALL BE QUALIFIED IN ACCORDANCE WITH AWS STANDARDS.\n\n" +
-"UNLESS OTHERWISE NOTED, THE STEEL FABRICATOR’S LICENSED PROFESSIONAL ENGINEER SHALL DESIGN AND DETAIL CONNECTIONS IN ACCORDANCE WITH AISC STANDARDS TO SUPPORT THE FACTORED LOADS INDICATED ON THE DESIGN REACTION SCHEDULES OR AS OTHERWISE NOTED. CONNECTION DESIGN CALCULATIONS SHALL BE SEALED AND SUBMITTED WITH THE SHOP DRAWINGS FOR SER REVIEW.\n\n" +
-"FIELD MODIFICATIONS TO STEEL MEMBERS, INCLUDING CUTTING, COPING, DRILLING, ADDING HOLES, OR ATTACHMENTS FOR OTHER TRADES, SHALL BE SHOWN ON SHOP DRAWINGS FOR SER REVIEW PRIOR TO FABRICATION OR PERFORMED IN THE FIELD ONLY WITH WRITTEN SER APPROVAL.\n\n" +
-"BASE PLATES AND ANCHOR RODS SHALL BE SET USING LEVELING DEVICES, SHIMS, OR LEVELING NUTS AS INDICATED, WITH NON-SHRINK GROUT PLACED AFTER COLUMN PLUMBNESS IS VERIFIED.\n\n" +
-"STEEL SURFACES EXPOSED TO WEATHER OR CORROSIVE ENVIRONMENTS SHALL RECEIVE GALVANIZING OR OTHER PROTECTIVE COATINGS AS INDICATED ON THE DRAWINGS OR IN THE SPECIFICATIONS. STEEL ENCASED IN CONCRETE OR PLACED BELOW GRADE SHALL RECEIVE BITUMINOUS OR OTHER PROTECTIVE COATINGS WHERE REQUIRED."
-      },
-      {
-        id: "deck-cfs",
-        checkboxId: "chk-deck-cfs",
-        heading: "H. METAL DECK AND COLD-FORMED STEEL FRAMING",
-        body:
-"METAL ROOF AND FLOOR DECK SHALL CONFORM TO STEEL DECK INSTITUTE (SDI) DESIGN MANUALS AND PROJECT SPECIFICATIONS. DECK PROFILES, GAGES, AND SPANS SHALL BE AS INDICATED ON THE DRAWINGS.\n\n" +
-"METAL DECK BASE MATERIAL SHALL BE STRUCTURAL-QUALITY SHEET STEEL CONFORMING TO ASTM A653 WITH MINIMUM G60 GALVANIZED COATING (OR AS SPECIFIED), OF THE GRADE INDICATED.\n\n" +
-"DECK ATTACHMENT (WELDS, SCREWS, OR POWER-ACTUATED FASTENERS) SHALL FOLLOW THE SPACING AND PATTERN INDICATED ON THE DRAWINGS AND SHALL COMPLY WITH SDI RECOMMENDATIONS FOR DIAPHRAGM SHEAR AND UPLIFT RESISTANCE. COORDINATE WITH ROOFING AND FLOORING MANUFACTURER REQUIREMENTS.\n\n" +
-"PROVIDE CLOSURES, REINFORCING PLATES, POUR STOPS, SUMP PANS, AND OTHER ACCESSORIES AS INDICATED OR AS REQUIRED TO ACHIEVE A COMPLETE DECK SYSTEM.\n\n" +
-"COLD-FORMED STEEL FRAMING (STUDS, JOISTS, TRACKS, AND ACCESSORIES) SHALL CONFORM TO AISI S100 AND THE MANUFACTURER’S LOAD TABLES. MEMBER SIZES, GAGES, AND SPACING SHALL BE AS INDICATED ON THE DRAWINGS OR BY DELEGATED DESIGN.\n\n" +
-"BRACING AND BRIDGING FOR COLD-FORMED STUDS AND JOISTS SHALL BE INSTALLED IN ACCORDANCE WITH THE DESIGNER’S REQUIREMENTS AND MANUFACTURER’S PUBLISHED DETAILS. DO NOT REMOVE TEMPORARY BRACING UNTIL PERMANENT BRACING IS COMPLETE.\n\n" +
-"DELEGATED COLD-FORMED STEEL DESIGN (E.G., CURTAIN WALL STUDS, COLD-FORMED TRUSSES, JOISTS) SHALL BE PERFORMED BY A PROFESSIONAL ENGINEER LICENSED IN THE PROJECT STATE. CALCULATIONS AND SHOP DRAWINGS SHALL BE SUBMITTED FOR SER REVIEW."
-      },
-      {
-        id: "wood",
-        checkboxId: "chk-wood",
-        heading: "I. WOOD AND MASS TIMBER FRAMING",
-        body:
-"WOOD DESIGN SHALL CONFORM TO THE NATIONAL DESIGN SPECIFICATION (NDS) FOR WOOD CONSTRUCTION AND APPLICABLE SUPPLEMENTS, INCLUDING SDPWS FOR LATERAL SYSTEMS, AS ADOPTED BY THE GOVERNING BUILDING CODE.\n\n" +
-"DIMENSION LUMBER SHALL BE VISUALLY GRADED OR MACHINE STRESS-RATED (MSR) OF THE SPECIES AND GRADE INDICATED. ENGINEERED WOOD PRODUCTS (LVL, PSL, LSL, I-JOISTS, GLULAM, CLT) SHALL BE FROM MANUFACTURERS WITH PUBLISHED DESIGN VALUES RECOGNIZED BY THE ADOPTED BUILDING CODE.\n\n" +
-"MOISTURE CONTENT AND CONDITIONING OF FRAMING LUMBER SHALL BE SUITABLE FOR THE INTENDED SERVICE CONDITIONS. PROTECT WOOD FROM PROLONGED EXPOSURE TO WEATHER AND MOISTURE PRIOR TO ENCLOSURE.\n\n" +
-"FASTENERS (NAILS, SCREWS, BOLTS, LAG SCREWS) SHALL CONFORM TO ASTM F1667 AND OTHER APPLICABLE STANDARDS. NAIL SIZES AND SPACINGS SHALL BE AS INDICATED ON THE DRAWINGS AND/OR IN REFERENCED FASTENING SCHEDULES IN ACCORDANCE WITH NDS AND SDPWS.\n\n" +
-"FRAMING CONNECTORS (JOIST HANGERS, HOLDOWNS, POST BASES, STRAPS, ETC.) SHALL BE AS INDICATED ON THE DRAWINGS OR APPROVED EQUALS. INSTALL CONNECTORS PER MANUFACTURER’S PUBLISHED INSTALLATION INSTRUCTIONS USING SPECIFIED FASTENERS.\n\n" +
-"FASTENERS AND CONNECTORS IN PRESERVATIVE-TREATED LUMBER OR EXPOSED TO WEATHER SHALL BE HOT-DIP GALVANIZED OR STAINLESS STEEL, AS REQUIRED FOR THE TREATMENT TYPE AND EXPOSURE CONDITIONS.\n\n" +
-"BUILT-UP WOOD MEMBERS (HEADERS, BEAMS, POSTS) SHALL BE NAILED OR BOLTED TOGETHER IN ACCORDANCE WITH NDS AND PROJECT NAILING SCHEDULES. PROVIDE FULL-DEPTH BLOCKING, BEARING, AND LATERAL BRACING AS INDICATED.\n\n" +
-"PREFABRICATED WOOD TRUSSES SHALL BE DESIGNED, DETAILED, FABRICATED, AND BRACED IN ACCORDANCE WITH TPI/WTCA BCSI GUIDELINES AND THE DESIGN LOADS INDICATED ON THE STRUCTURAL DRAWINGS. THE TRUSS MANUFACTURER’S ENGINEER SHALL PROVIDE SEALED TRUSS CALCULATIONS AND PLACEMENT DIAGRAMS FOR SER REVIEW.\n\n" +
-"WOOD SHEAR WALLS AND DIAPHRAGMS SHALL BE SHEATHED, NAILED, AND BLOCKED IN ACCORDANCE WITH SDPWS AND THE SHEAR WALL/DIAPHRAGM SCHEDULES ON THE DRAWINGS. DO NOT CHANGE SHEATHING TYPE, THICKNESS, OR NAILING PATTERNS WITHOUT SER APPROVAL."
-      },
-      {
-        id: "submittals",
-        checkboxId: "chk-submittals",
-        heading: "J. SUBMITTALS AND DELEGATED DESIGN ITEMS",
-        body:
-"THE CONTRACTOR SHALL SUBMIT SHOP DRAWINGS, PRODUCT DATA, AND ENGINEERING CALCULATIONS FOR STRUCTURAL ITEMS AS REQUIRED BY THE CONTRACT DOCUMENTS AND THESE NOTES. SUBMITTALS SHALL BE REVIEWED BY THE CONTRACTOR FOR COMPLETENESS, COORDINATION, AND COMPLIANCE PRIOR TO FORWARDING TO THE SER.\n\n" +
-"DELEGATED DESIGN ITEMS REQUIRING SEALED CALCULATIONS AND DRAWINGS BY A PROFESSIONAL ENGINEER LICENSED IN THE PROJECT STATE TYPICALLY INCLUDE, WHERE APPLICABLE: STRUCTURAL STEEL CONNECTIONS, COLD-FORMED STEEL FRAMING SYSTEMS, WOOD TRUSSES, STAIRS AND RAILINGS, PRE-ENGINEERED METAL BUILDINGS, PROPRIETARY ANCHORING SYSTEMS, AND OTHER SPECIALTY STRUCTURAL COMPONENTS IDENTIFIED ON THE DRAWINGS OR IN THE SPECIFICATIONS.\n\n" +
-"SUBMITTALS FOR CONCRETE SHALL INCLUDE MIX DESIGNS, REINFORCING SHOP DRAWINGS, AND PRODUCT DATA FOR NONSHRINK GROUT AND PROPRIETARY REPAIR MATERIALS WHERE USED.\n\n" +
-"SUBMITTALS FOR STRUCTURAL STEEL SHALL INCLUDE MEMBER AND CONNECTION SHOP DRAWINGS, CONNECTION DESIGN CALCULATIONS WHERE REQUIRED, COATING SYSTEM DATA, AND FABRICATION DETAILS FOR STAIRS, HANDRAILS, AND MISCELLANEOUS METALS THAT RELY ON STRUCTURAL SUPPORT.\n\n" +
-"SUBMITTALS FOR WOOD FRAMING SHALL INCLUDE ENGINEERED WOOD PRODUCT DATA (LVL, PSL, I-JOISTS, GLULAM, CLT), TRUSS SHOP DRAWINGS AND CALCULATIONS, AND HARDWARE SCHEDULES FOR HOLDDOWNS, STRAPS, AND CONNECTORS.\n\n" +
-"SUBMITTALS FOR MASONRY SHALL INCLUDE UNIT DATA, PRISM TEST PROCEDURES OR UNIT STRENGTH VERIFICATION, REINFORCING AND GROUT PLACEMENT DETAILS, AND ACCESSORIES SUCH AS TIES, ANCHORS, AND JOINT REINFORCEMENT.\n\n" +
-"SUBMITTALS FOR COLD-FORMED STEEL FRAMING SHALL INCLUDE MEMBER AND CONNECTION DETAILS, BRIDGING AND BRACING LAYOUTS, AND DESIGN CALCULATIONS WHERE FRAMING IS DELEGATED.\n\n" +
-"THE SER’S REVIEW OF SUBMITTALS IS FOR GENERAL CONFORMANCE WITH THE DESIGN INTENT AND DOES NOT RELIEVE THE CONTRACTOR OR DELEGATED-DESIGN PROFESSIONAL ENGINEER FROM RESPONSIBILITY FOR THE ADEQUACY AND COMPLETENESS OF THEIR DESIGN."
-      },
-      {
-        id: "construction-loads",
-        checkboxId: "chk-construction-loads",
-        heading: "K. CONSTRUCTION LOADS, TEMPORARY CONDITIONS, AND COORDINATION",
-        body:
-"THE STRUCTURE SHALL NOT BE LOADED DURING CONSTRUCTION IN A MANNER THAT RESULTS IN MEMBER FORCES OR DEFLECTIONS EXCEEDING THOSE ASSUMED IN DESIGN. THE CONTRACTOR SHALL PROVIDE SHORING AND TEMPORARY SUPPORTS WHERE REQUIRED TO ACCOMMODATE CONSTRUCTION LOADS, EQUIPMENT, AND MATERIAL STOCKPILES.\n\n" +
-"SHORING AND RESHORING OF CONCRETE SLABS, BEAMS, AND OTHER ELEMENTS SHALL BE DESIGNED BY THE CONTRACTOR OR A QUALIFIED PROFESSIONAL ENGINEER WHERE REQUIRED BY THE CONSTRUCTION SEQUENCE. SHORES SHALL NOT BE REMOVED UNTIL CONCRETE HAS ATTAINED SUFFICIENT STRENGTH TO SUPPORT ITS OWN WEIGHT PLUS CONSTRUCTION LOADS.\n\n" +
-"TEMPORARY BRACING FOR FRAMES, WALLS, AND OTHER FRAMING SHALL BE PROVIDED AND MAINTAINED BY THE CONTRACTOR AS REQUIRED TO ENSURE STABILITY AT ALL STAGES OF CONSTRUCTION, INCLUDING UNDER WIND AND CONSTRUCTION LOADS, UNTIL THE PERMANENT LATERAL-FORCE-RESISTING SYSTEM IS COMPLETE.\n\n" +
-"EXPANSION JOINTS, MOVEMENT JOINTS, AND SLIP DETAILS SHALL BE COORDINATED WITH ARCHITECTURAL, MECHANICAL, AND ENVELOPE SYSTEMS. NONSTRUCTURAL COMPONENTS SHALL NOT BE RIGIDLY CONNECTED WHERE STRUCTURAL DEFLECTIONS OR MOVEMENTS HAVE BEEN INDICATED.\n\n" +
-"EXISTING STRUCTURES, UTILITIES, AND IMPROVEMENTS SHALL BE PROTECTED FROM DAMAGE DUE TO CONSTRUCTION ACTIVITIES, DEWATERING, OR CHANGES IN GRADE. MONITORING OR PRE-CONDITION SURVEYS SHALL BE PROVIDED WHERE REQUIRED BY THE CONTRACT DOCUMENTS.\n\n" +
-"PRIOR TO CORING, CUTTING, OR REMOVING PORTIONS OF EXISTING STRUCTURAL MEMBERS OR SLABS, PROPOSED LOCATIONS AND METHODS SHALL BE SUBMITTED TO THE SER FOR REVIEW, INCLUDING ANY REQUIRED STRENGTHENING OR FRAMING MODIFICATIONS."
+      document.querySelectorAll(".step-chip").forEach(chip => {
+        const s = Number(chip.dataset.step);
+        chip.classList.remove("active");
+        if (s === stepIndex) chip.classList.add("active");
+      });
+
+      if (window.MathJax && MathJax.typesetPromise) {
+        MathJax.typesetPromise();
       }
-    ];
-
-    function buildCodesSectionBody() {
-      var buildingCode = document.getElementById("buildingCode").value || "";
-      var asceEdition = document.getElementById("asceEdition").value || "";
-      var riskCategory = document.getElementById("riskCategory").value || "";
-      var siteClass = document.getElementById("siteClass").value || "";
-      var windExposure = document.getElementById("windExposure").value || "";
-
-      var pg = document.getElementById("pg").value || "";
-      var pf = document.getElementById("pf").value || "";
-      var vult = document.getElementById("vult").value || "";
-      var vasd = document.getElementById("vasd").value || "";
-      var sds = document.getElementById("sds").value || "";
-      var sd1 = document.getElementById("sd1").value || "";
-
-      var lines = [];
-
-      lines.push("DESIGN CODES / STANDARDS");
-      lines.push("------------------------");
-      lines.push("");
-      lines.push("BUILDING CODE: " + (buildingCode || SHORT_BLANK));
-      lines.push("ASCE 7 EDITION: " + (asceEdition || SHORT_BLANK));
-      lines.push("PRIMARY STRUCTURAL STANDARDS: ACI 318/301, TMS 402/602, AISC 360/303, AISC 341 (WHERE APPLICABLE), NDS/SDPWS, SDI, AISI S100, AND OTHER STANDARDS AS INDICATED IN THE MATERIAL SECTIONS AND PROJECT SPECIFICATIONS.");
-      lines.push("RISK CATEGORY: " + (riskCategory || SHORT_BLANK));
-      lines.push("OCCUPANCY / USE (PER ARCHITECTURAL CODE SUMMARY): " + SHORT_BLANK);
-      lines.push("");
-      lines.push("DESIGN LOAD PARAMETERS");
-      lines.push("----------------------");
-      lines.push("");
-      lines.push("GROUND SNOW LOAD, Pg = " + (pg ? pg + " PSF" : "____ PSF"));
-      lines.push("FLAT ROOF SNOW LOAD, pf = " + (pf ? pf + " PSF" : "____ PSF"));
-      lines.push("IMPORTANCE FACTOR, Is = " + SHORT_BLANK);
-      lines.push("");
-      lines.push("ULTIMATE WIND SPEED, Vult = " + (vult ? vult + " MPH" : "____ MPH"));
-      lines.push("NOMINAL WIND SPEED, Vasd = " + (vasd ? vasd + " MPH" : "____ MPH"));
-      lines.push("WIND EXPOSURE CATEGORY: " + (windExposure || SHORT_BLANK));
-      lines.push("INTERNAL PRESSURE COEFFICIENT, GCpi = ±______");
-      lines.push("");
-      lines.push("SEISMIC SITE CLASS: " + (siteClass || SHORT_BLANK));
-      lines.push("SDS = " + (sds ? sds + " g" : "____ g"));
-      lines.push("SD1 = " + (sd1 ? sd1 + " g" : "____ g"));
-      lines.push("SEISMIC DESIGN CATEGORY (SDC): " + SHORT_BLANK);
-      lines.push("ANALYSIS PROCEDURE (ELF, RSA, OTHER): " + SHORT_BLANK);
-      lines.push("");
-      lines.push("SOILS / FOUNDATIONS");
-      lines.push("-------------------");
-      lines.push("");
-      lines.push("GEOTECHNICAL REPORT: " + SHORT_BLANK + "  REPORT NO.: ____  DATE: ____");
-      lines.push("ALLOWABLE NET BEARING PRESSURE (TYPICAL): ____ PSF ON [UNDISTURBED NATIVE SOIL / COMPACTED STRUCTURAL FILL] UNLESS NOTED OTHERWISE.");
-      lines.push("FROST DEPTH: ____ INCHES MINIMUM BELOW EXTERIOR GRADE, OR AS REQUIRED BY LOCAL CODE, WHICHEVER IS MORE STRINGENT.");
-      lines.push("LATERAL EARTH PRESSURES, FRICTION COEFFICIENTS, AND OTHER SOIL PARAMETERS USED FOR DESIGN SHALL BE INDICATED ON THE DRAWINGS AND SHALL BE CONSISTENT WITH THE GEOTECHNICAL REPORT.");
-
-      return lines.join("\n");
     }
 
-    function buildNotes() {
-      var text = "";
-      var i;
+    function updateDerived() {
+      const Lft = Number(document.getElementById("L-ft").value || 0);
+      const Lin = Lft * 12;
+      const b = Number(document.getElementById("b-in").value || 0);
+      const d = Number(document.getElementById("d-in").value || 0);
 
-      text += disclaimerBlock + "\n";
+      const wD = Number(document.getElementById("wD").value || 0);
+      const wL = Number(document.getElementById("wL").value || 0);
+      const w = wD + wL;
 
-      var projectName = (document.getElementById("projectName").value || "").trim();
-      var projectNumber = (document.getElementById("projectNumber").value || "").trim();
-      var drawingDate = (document.getElementById("drawingDate").value || "").trim();
+      const A = b * d;
+      const S = (b * d * d) / 6;
+      const I = (b * d * d * d) / 12;
 
-      if (projectName || projectNumber || drawingDate) {
-        text += "PROJECT INFO\n";
-        text += "------------\n";
-        if (projectName) {
-          text += "PROJECT: " + projectName + "\n";
-        }
-        if (projectNumber) {
-          text += "PROJECT NO.: " + projectNumber + "\n";
-        }
-        if (drawingDate) {
-          text += "DATE: " + drawingDate + "\n";
-        }
-        text += "\n";
-      }
-
-      for (i = 0; i < sections.length; i++) {
-        var section = sections[i];
-        var cb = document.getElementById(section.checkboxId);
-        if (cb && cb.checked) {
-          text += section.heading + "\n";
-          text += new Array(section.heading.length + 1).join("-") + "\n\n";
-
-          if (section.id === "codes") {
-            text += buildCodesSectionBody() + "\n\n\n";
-          } else {
-            text += section.body + "\n\n\n";
-          }
-        }
-      }
-
-      if (text.replace(/\s+/g, "") === "") {
-        text = "No sections selected. Please choose at least one section above.";
-      }
-
-      var output = document.getElementById("output");
-      output.value = text;
-      var status = document.getElementById("copy-status");
-      status.textContent = "";
-      status.className = "copy-status";
+      const div = document.getElementById("derived-properties");
+      div.innerHTML = `
+        <strong>Derived values (geom only):</strong><br>
+        L = ${Lft.toFixed(2)} ft = ${Lin.toFixed(1)} in<br>
+        A = b d = ${A.toFixed(1)} in²<br>
+        S = b d² / 6 ≈ ${S.toFixed(1)} in³<br>
+        I = b d³ / 12 ≈ ${I.toFixed(1)} in⁴<br>
+        w = w_D + w_L = ${w.toFixed(1)} lb/ft
+      `;
     }
 
-    function copyNotes() {
-      var output = document.getElementById("output");
-      var status = document.getElementById("copy-status");
-      var text = output.value;
+    function showFeedback(id, message, ok) {
+      const box = document.getElementById(id);
+      box.style.display = "block";
+      box.textContent = message;
+      box.classList.remove("ok", "error");
+      if (ok === true) box.classList.add("ok");
+      else if (ok === false) box.classList.add("error");
+    }
 
-      if (!text || text.replace(/\s+/g, "") === "") {
-        status.textContent = "Nothing to copy. Generate notes first.";
-        status.className = "copy-status error";
-        return;
-      }
+    // ----- report calculations -----
+    function fillReport() {
+      const Lft = Number(document.getElementById("L-ft").value || 0);
+      const Lin = Lft * 12;
+      const b = Number(document.getElementById("b-in").value || 0);
+      const d = Number(document.getElementById("d-in").value || 0);
+      const wD = Number(document.getElementById("wD").value || 0);
+      const wL = Number(document.getElementById("wL").value || 0);
+      const w_ft = wD + wL;
+      const w_in = w_ft / 12;
+      const species = document.getElementById("species").value;
 
-      try {
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-          navigator.clipboard.writeText(text);
+      const A = b * d;
+      const S = (b * d * d) / 6;
+      const I = (b * d * d * d) / 12;
+
+      // bending values
+      const M_lbft = w_ft * Lft * Lft / 8;
+      const M_kipft = M_lbft / 1000;
+      const M_lbin = M_lbft * 12;
+      const fb = S > 0 ? M_lbin / S : 0;
+
+      const Fb_base = Number(document.getElementById("Fb-base").value || 0);
+      const Cd_b = Number(document.getElementById("Cd-b").value || 1);
+      const Cm_b = Number(document.getElementById("Cm-b").value || 1);
+      const Ct_b = Number(document.getElementById("Ct-b").value || 1);
+      const Cf_b = Number(document.getElementById("Cf-b").value || 1);
+      const Ci_b = Number(document.getElementById("Ci-b").value || 1);
+      const Fb_adj = Fb_base * Cd_b * Cm_b * Ct_b * Cf_b * Ci_b;
+
+      // shear values
+      const V_lb = w_ft * Lft / 2;
+      const fv = A > 0 ? 1.5 * V_lb / A : 0;
+
+      const Fv_base = Number(document.getElementById("Fv-base").value || 0);
+      const Cd_v = Number(document.getElementById("Cd-v").value || 1);
+      const Cm_v = Number(document.getElementById("Cm-v").value || 1);
+      const Ct_v = Number(document.getElementById("Ct-v").value || 1);
+      const Fv_adj = Fv_base * Cd_v * Cm_v * Ct_v;
+
+      // deflection values
+      const E = Number(document.getElementById("E-psi").value || 0);
+      const ratio = Number(document.getElementById("defl-ratio").value || 360);
+      const Delta_max = (E > 0 && I > 0)
+        ? (5 * w_in * Math.pow(Lin, 4) / (384 * E * I))
+        : 0;
+      const Delta_allow = ratio > 0 ? Lin / ratio : 0;
+
+      // fill input summary
+      document.getElementById("r-L").textContent =
+        `${Lft.toFixed(2)} ft (${Lin.toFixed(1)} in)`;
+      document.getElementById("r-section").textContent =
+        `${b.toFixed(2)} in × ${d.toFixed(2)} in, ${species}`;
+      document.getElementById("r-loads").textContent =
+        `w_D = ${wD.toFixed(1)} lb/ft, w_L = ${wL.toFixed(1)} lb/ft, w = ${w_ft.toFixed(1)} lb/ft`;
+
+      // numeric table
+      document.getElementById("r-M").textContent =
+        `${M_kipft.toFixed(2)} kip·ft`;
+      document.getElementById("r-V").textContent =
+        `${V_lb.toFixed(0)} lb`;
+      document.getElementById("r-Delta").textContent =
+        `${Delta_max.toFixed(3)} in`;
+      document.getElementById("r-S").textContent =
+        `${S.toFixed(1)} in³`;
+      document.getElementById("r-I").textContent =
+        `${I.toFixed(1)} in⁴`;
+      document.getElementById("r-fb").textContent =
+        `${fb.toFixed(0)} psi`;
+      document.getElementById("r-Fb").textContent =
+        `${Fb_adj.toFixed(0)} psi`;
+      document.getElementById("r-fv").textContent =
+        `${fv.toFixed(1)} psi`;
+      document.getElementById("r-Fv").textContent =
+        `${Fv_adj.toFixed(1)} psi`;
+      document.getElementById("r-Delta-allow").textContent =
+        `${Delta_allow.toFixed(3)} in (L/${ratio.toFixed(0)})`;
+
+      // conceptual status
+      const momentCell = document.getElementById("r-moment-status");
+      const shearCell = document.getElementById("r-shear-status");
+      const deflCell = document.getElementById("r-defl-status");
+
+      momentCell.innerHTML = state.conceptual.moment
+        ? 'Moment logic passed<span class="badge-pass">OK</span>'
+        : 'Not yet passed<span class="badge-fail">Check math</span>';
+
+      shearCell.innerHTML = state.conceptual.shear
+        ? 'Shear logic passed<span class="badge-pass">OK</span>'
+        : 'Not yet passed<span class="badge-fail">Check math</span>';
+
+      deflCell.innerHTML = state.conceptual.deflection
+        ? 'Deflection logic passed<span class="badge-pass">OK</span>'
+        : 'Not yet passed<span class="badge-fail">Check math</span>';
+    }
+
+    // ----- event wiring -----
+    document.addEventListener("DOMContentLoaded", () => {
+      updateDerived();
+
+      document.querySelectorAll("#L-ft,#b-in,#d-in,#wD,#wL").forEach(el => {
+        el.addEventListener("input", updateDerived);
+      });
+
+      document.querySelectorAll(".step-chip").forEach(chip => {
+        chip.addEventListener("click", () => {
+          const s = Number(chip.dataset.step);
+          selectStep(s);
+        });
+      });
+
+      // design method toggle
+      document.querySelectorAll("#design-method-toggle button").forEach(btn => {
+        btn.addEventListener("click", () => {
+          document.querySelectorAll("#design-method-toggle button")
+            .forEach(b => b.classList.remove("active"));
+          btn.classList.add("active");
+          state.method = btn.dataset.value;
+        });
+      });
+
+      document.getElementById("btn-to-moment").addEventListener("click", () => {
+        selectStep(1);
+      });
+
+      // Moment check
+      document.getElementById("btn-check-moment").addEventListener("click", () => {
+        const moment = document.querySelector('input[name="momentFormula"]:checked');
+        const sForm = document.querySelector('input[name="SFormula"]:checked');
+        const fbForm = document.querySelector('input[name="fbFormula"]:checked');
+        const FbAdj = document.querySelector('input[name="FbAdjFormula"]:checked');
+        const ineq = document.querySelector('input[name="ineq"]:checked');
+
+        if (!moment || !sForm || !fbForm || !FbAdj || !ineq) {
+          showFeedback("moment-feedback", "Answer all five parts before checking.", false);
+          return;
+        }
+
+        const allCorrect =
+          moment.value === "correct" &&
+          sForm.value === "correct" &&
+          fbForm.value === "correct" &&
+          FbAdj.value === "correct" &&
+          ineq.value === "correct";
+
+        if (allCorrect) {
+          state.conceptual.moment = true;
+          showFeedback(
+            "moment-feedback",
+            "Nice work. Your moment, section modulus, bending stress expression, adjustment factors, and inequality all line up.",
+            true
+          );
+          document.getElementById("btn-to-shear").style.display = "inline-block";
+          document.querySelector('.step-chip[data-step="1"]').classList.add("completed");
         } else {
-          output.focus();
-          output.select();
-          document.execCommand("copy");
+          state.conceptual.moment = false;
+          showFeedback(
+            "moment-feedback",
+            "The number I’d get for bending doesn’t match your chain of equations. Check the moment formula, section modulus, stress definition, and inequality, then try again.",
+            false
+          );
         }
-        status.textContent = "Copied to clipboard. Paste into your project file and edit as needed.";
-        status.className = "copy-status success";
-      } catch (err) {
-        status.textContent = "Could not copy automatically. Select the text above and copy it manually (Ctrl+C / Cmd+C).";
-        status.className = "copy-status error";
-      }
-    }
+      });
 
-    document.getElementById("btn-generate").addEventListener("click", buildNotes);
-    document.getElementById("btn-copy").addEventListener("click", copyNotes);
+      document.getElementById("btn-to-shear").addEventListener("click", () => {
+        selectStep(2);
+      });
 
-    buildNotes();
+      // Shear check
+      document.getElementById("btn-check-shear").addEventListener("click", () => {
+        const VForm = document.querySelector('input[name="VFormula"]:checked');
+        const fvForm = document.querySelector('input[name="fvFormula"]:checked');
+        const FvAdj = document.querySelector('input[name="FvAdjFormula"]:checked');
+        const ineqS = document.querySelector('input[name="ineqShear"]:checked');
+
+        if (!VForm || !fvForm || !FvAdj || !ineqS) {
+          showFeedback("shear-feedback", "Answer all four parts before checking.", false);
+          return;
+        }
+
+        const allCorrect =
+          VForm.value === "correct" &&
+          fvForm.value === "correct" &&
+          FvAdj.value === "correct" &&
+          ineqS.value === "correct";
+
+        if (allCorrect) {
+          state.conceptual.shear = true;
+          showFeedback(
+            "shear-feedback",
+            "Shear chain looks good. Your \(V_{\max}\), shear stress expression, factors, and inequality match the usual wood design logic.",
+            true
+          );
+          document.getElementById("btn-to-deflection").style.display = "inline-block";
+          document.querySelector('.step-chip[data-step="2"]').classList.add("completed");
+        } else {
+          state.conceptual.shear = false;
+          showFeedback(
+            "shear-feedback",
+            "The number I’d expect for shear doesn’t line up with those equations. The problem child is probably the \(V_{\max}\) formula or the 3/2 factor.",
+            false
+          );
+        }
+      });
+
+      document.getElementById("btn-to-deflection").addEventListener("click", () => {
+        selectStep(3);
+      });
+
+      // Deflection check
+      document.getElementById("btn-check-deflection").addEventListener("click", () => {
+        const DForm = document.querySelector('input[name="DeltaFormula"]:checked');
+        const DLim = document.querySelector('input[name="DeflLimitFormula"]:checked');
+        const DIneq = document.querySelector('input[name="DeflIneq"]:checked');
+
+        if (!DForm || !DLim || !DIneq) {
+          showFeedback("deflection-feedback", "Answer all three parts before checking.", false);
+          return;
+        }
+
+        const allCorrect =
+          DForm.value === "correct" &&
+          DLim.value === "correct" &&
+          DIneq.value === "correct";
+
+        if (allCorrect) {
+          state.conceptual.deflection = true;
+          showFeedback(
+            "deflection-feedback",
+            "Deflection formulas and inequality look good. You’ve got the 5/384 coefficient, the \(L/360\) limit, and the comparison in the right direction.",
+            true
+          );
+          document.getElementById("btn-to-report").style.display = "inline-block";
+          document.querySelector('.step-chip[data-step="3"]').classList.add("completed");
+        } else {
+          state.conceptual.deflection = false;
+          showFeedback(
+            "deflection-feedback",
+            "The deflection I’d compute either explodes or is way too forgiving. Check the 5/384 coefficient, the power on L, and which side of the inequality is larger.",
+            false
+          );
+        }
+      });
+
+      document.getElementById("btn-to-report").addEventListener("click", () => {
+        fillReport();
+        document.querySelector('.step-chip[data-step="4"]').classList.add("completed");
+        selectStep(4);
+      });
+    });
   </script>
 </body>
 </html>
