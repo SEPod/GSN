@@ -662,4 +662,182 @@
         // Case 1: internal pressure positive
         var p_pos = qh * (GCp - GCpi);
         // Case 2: internal pressure negative
-        var p_neg = qh * (GCp*_
+        var p_neg = qh * (GCp + GCpi);
+        var p_env = Math.abs(p_pos) >= Math.abs(p_neg) ? p_pos : p_neg;
+
+        rep.push("  Net pressure with internal pressure POSITIVE  (+GCpi):");
+        rep.push("    p(+GCpi) = qh · (GCp − |GCpi|) = " +
+          fmt(qh,2) + " · (" + fmt(GCp,3) + " − " + fmt(GCpi,3) + ") = " + fmt(p_pos,2) + " psf");
+
+        rep.push("  Net pressure with internal pressure NEGATIVE (−GCpi):");
+        rep.push("    p(−GCpi) = qh · (GCp + |GCpi|) = " +
+          fmt(qh,2) + " · (" + fmt(GCp,3) + " + " + fmt(GCpi,3) + ") = " + fmt(p_neg,2) + " psf");
+
+        rep.push("  Envelope net pressure to consider for design (max |p| of the two above):");
+        rep.push("    p_env = " + fmt(p_env,2) + " psf (sign indicates pressure/suction on the defined face)");
+      }
+
+      zoneRow(1);
+      zoneRow(2);
+      zoneRow(3);
+      zoneRow(4);
+
+      rep.push("");
+      rep.push("NOTES & LIMITATIONS");
+      rep.push("-------------------");
+      rep.push("- This helper assumes the use of a low-rise envelope-style MWFRS procedure; confirm that the");
+      rep.push("  selected ASCE 7 edition permits this for the given building height, geometry, and SFRS.");
+      rep.push("- GCp values must be taken directly from the appropriate ASCE 7 figures for the building shape,");
+      rep.push("  roof type, zone widths, and wind direction considered.");
+      rep.push("- Internal pressure GCpi must be selected for the proper enclosure classification.");
+      rep.push("- Apply these pressures to the correct zones, line loads, and reactions per ASCE 7; this helper");
+      rep.push("  does not distribute loads or check members.");
+      rep.push("- Check minimum design pressures and any special provisions (roof overhangs, parapets, etc.).");
+      rep.push("- For buildings outside the low-rise assumptions, use the Directional Procedure or other methods");
+      rep.push("  as required by ASCE 7 and local code.");
+
+      return rep.join("\n");
+    }
+
+    function buildNotes() {
+      var projName   = str("projName");
+      var projNumber = str("projNumber");
+      var codeYear   = str("codeYear");
+      var asceEd     = str("asceEdition");
+      var riskCat    = str("riskCat");
+
+      var V       = num("Vult");
+      var exp     = str("exposure");
+      var Kzt     = num("Kzt");
+      var Kd      = num("Kd");
+      var encl    = str("enclosure");
+      var GCpiMag = num("GCpiMag");
+
+      var hMean   = num("hMean");
+      var roofTy  = str("roofType");
+
+      var lines = [];
+
+      lines.push("STRUCTURAL DESIGN CRITERIA – WIND");
+      lines.push("");
+      if (projName)   lines.push("PROJECT: " + projName);
+      if (projNumber) lines.push("PROJECT NO.: " + projNumber);
+      lines.push("");
+
+      var codeLine = "Wind loads determined in accordance with ";
+      if (codeYear) codeLine += codeYear + " ";
+      if (asceEd)   codeLine += "(" + asceEd + ")";
+      if (!codeYear && !asceEd) codeLine += "the governing building code and applicable ASCE 7 edition";
+      codeLine += ".";
+      lines.push(codeLine);
+
+      if (riskCat) {
+        lines.push("Risk Category: " + riskCat + ".");
+      }
+
+      var vText = "Basic wind speed: ";
+      if (V !== null) {
+        vText += "Vult = " + fmt(V, 0) + " mph (3-sec gust, ultimate-level wind speeds).";
+      } else {
+        vText += "Vult = ______ mph (3-sec gust, ultimate-level wind speeds).";
+      }
+      lines.push(vText);
+
+      var expText = "Exposure Category: ";
+      if (exp) {
+        expText += "Exposure " + exp + ".";
+      } else {
+        expText += "Exposure ____.";
+      }
+      lines.push(expText);
+
+      var enclText = "Enclosure Classification: ";
+      if (encl) enclText += encl + ".";
+      else enclText += "________.";
+      lines.push(enclText);
+
+      var gcpiText = "Internal pressure coefficient: GCpi = ±";
+      if (GCpiMag !== null) gcpiText += fmt(GCpiMag, 2) + ".";
+      else gcpiText += "____.";
+      lines.push(gcpiText);
+
+      var kztText = "Topographic factor: Kzt = ";
+      if (Kzt !== null) kztText += fmt(Kzt, 3) + ".";
+      else kztText += "____.";
+      lines.push(kztText);
+
+      var kdText = "Directionality factor for MWFRS: Kd = ";
+      if (Kd !== null) kdText += fmt(Kd, 3) + ".";
+      else kdText += "____.";
+      lines.push(kdText);
+
+      var geoLine = "MWFRS wind design is based on a low-rise envelope-style procedure for a simple building";
+      var parts = [];
+      if (hMean !== null) parts.push("mean roof height h ≈ " + fmt(hMean, 1) + " ft");
+      if (roofTy) parts.push("roof type: " + roofTy.toLowerCase());
+      if (parts.length > 0) geoLine += " (" + parts.join(", ") + ")";
+      geoLine += ", subject to verification that all ASCE 7 applicability limits are satisfied.";
+      lines.push(geoLine);
+
+      lines.push("");
+      lines.push("All wind loads are ultimate-level (LRFD basis) unless noted otherwise. Allowable stress design");
+      lines.push("load combinations, where used, are derived from these ultimate-level wind effects per the governing code.");
+
+      return lines.join("\n");
+    }
+
+    function updateOutputs() {
+      var text = buildReport();
+      document.getElementById("report").value = text;
+
+      var notesText = buildNotes();
+      document.getElementById("notes").value = notesText;
+
+      var status = document.getElementById("copyStatus");
+      status.textContent = "";
+      status.className = "copy-status";
+
+      updateHeightWarning();
+    }
+
+    function copyTextFrom(id, statusId) {
+      var el = document.getElementById(id);
+      var status = document.getElementById(statusId);
+      var text = el.value || "";
+
+      if (!text.trim()) {
+        status.textContent = "Nothing to copy. Compute values first.";
+        status.className = "copy-status error";
+        return;
+      }
+
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text);
+        } else {
+          el.focus();
+          el.select();
+          document.execCommand("copy");
+        }
+        status.textContent = "Copied. Paste into your calc or notes and edit as needed.";
+        status.className = "copy-status success";
+      } catch (e) {
+        status.textContent = "Could not copy automatically. Select the text and copy manually (Ctrl+C / Cmd+C).";
+        status.className = "copy-status error";
+      }
+    }
+
+    document.getElementById("btnCalc").addEventListener("click", updateOutputs);
+    document.getElementById("btnCopy").addEventListener("click", function () {
+      copyTextFrom("report", "copyStatus");
+    });
+    document.getElementById("btnCopyNotes").addEventListener("click", function () {
+      copyTextFrom("notes", "copyStatus");
+    });
+    document.getElementById("hMean").addEventListener("input", updateHeightWarning);
+
+    // Initial empty outputs so layout isn't blank
+    updateOutputs();
+  </script>
+</body>
+</html>
