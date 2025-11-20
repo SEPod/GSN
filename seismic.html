@@ -798,16 +798,25 @@
       return lines.join("\n");
     }
 
-    function updateOutputs() {
-      var text = buildReport();
-      document.getElementById("report").value = text;
+function updateOutputs() {
+  var text = buildReport();
+  document.getElementById("report").value = text;
 
-      var notesText = buildNotes();
-      document.getElementById("notes").value = notesText;
+  var notesText = buildNotes();
+  document.getElementById("notes").value = notesText;
 
-      var status = document.getElementById("copyStatus");
-      status.textContent = "";
-      status.className = "copy-status";
+  // NEW: save seismic notes for the General Notes Hub
+  try {
+    localStorage.setItem("ts_ep_seismic_notes", notesText);
+  } catch (e) {
+    console.warn("Could not save seismic notes to localStorage", e);
+  }
+
+  var status = document.getElementById("copyStatus");
+  status.textContent = "";
+  status.className = "copy-status";
+}
+
     }
 
     function copyTextFrom(id, statusId) {
