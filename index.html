@@ -361,6 +361,14 @@
           <input type="checkbox" id="secK" checked />
           <span>K. Construction loads, temporary conditions, &amp; coordination</span>
         </label>
+        <label class="section-pill">
+          <input type="checkbox" id="secL" checked />
+          <span>L. Wind design criteria (generic or from wind helper)</span>
+        </label>
+        <label class="section-pill">
+          <input type="checkbox" id="secM" checked />
+          <span>M. Seismic design criteria (generic or from seismic helper)</span>
+        </label>
       </div>
 
       <div class="button-row">
@@ -466,7 +474,7 @@ Roof Live Load: Design roof live load is [LLr = ___ psf] in accordance with IBC/
 
 Snow Loads: Ground snow load Pg = [___ psf]. Flat roof snow load and related parameters shall be indicated on the drawings, including exposure factor Ce, thermal factor Ct, importance factor Is, and minimum uniform roof snow load, in accordance with IBC Section 1603.1 and ASCE 7.
 
-Wind Loads: Ultimate design wind speed Vult = [___ mph]; corresponding nominal wind speed Vasd = [___ mph] if used. Exposure category = [B/C/D]; risk category = ${risk}; internal pressure coefficient GCpi = [±___]. Indicate enclosure classification (enclosed, partially enclosed, or open) and topographic factor Kzt where required.
+Wind Loads: Ultimate design wind speed Vult = [___ mph]; corresponding nominal wind speed Vasd = [___ mph] if used. Exposure category = [B/C/D]; risk category = ${risk || "[I/II/III/IV]"}; internal pressure coefficient GCpi = [±___]. Indicate enclosure classification (enclosed, partially enclosed, or open) and topographic factor Kzt where required.
 
 Seismic Design Data (per IBC 1603.1 and ASCE 7 Chapter 11): Mapped spectral accelerations SS and S1; Site Class; design spectral accelerations SDS and SD1; Seismic Design Category (SDC); basic seismic force-resisting system(s) for each principal direction; response modification factor R; redundancy factor ρ; seismic response coefficient Cs; design base shear V; and analysis procedure used (e.g., Equivalent Lateral Force, Modal Response Spectrum).
 
@@ -674,6 +682,58 @@ Protect existing structures, utilities, and improvements from damage due to cons
 Prior to coring, cutting, or removing portions of existing structural members or slabs, submit proposed locations and methods to the SER for review, including any required strengthening or framing modifications.`;
     }
 
+    // NEW: L. WIND – with localStorage override
+    function buildSectionL(ctx) {
+      var override = null;
+      try {
+        if (typeof window !== "undefined" && window.localStorage) {
+          override = window.localStorage.getItem("ts_ep_wind_notes");
+        }
+      } catch (e) {}
+
+      if (override && override.trim()) {
+        return override;
+      }
+
+      var risk = ctx.riskCat || "[I/II/III/IV]";
+
+      return `L. WIND DESIGN CRITERIA
+
+Wind loads for the primary structural system and components and cladding are determined in accordance with ${ctx.asceEdition || "ASCE 7-[YEAR]"} and the adopted building code.
+
+Ultimate design wind speed Vult = [___ mph]; corresponding nominal wind speed Vasd = [___ mph] where applicable. Exposure category = [B/C/D] based on surrounding terrain; importance / risk category = ${risk}; topographic factor Kzt = [___]; directionality factor Kd = [___]; velocity pressure exposure coefficient Kz and Kzt are taken from ASCE 7 Chapter 26.
+
+Building enclosure classification (enclosed, partially enclosed, or open) and internal pressure coefficient GCpi are as indicated on the structural drawings. Design wind pressures for MWFRS and C&C are based on the zones, GCp values, and load combinations shown on the drawings and in the supporting wind calculations.
+
+Where the Wind Helper tool is used, the detailed velocity pressure, zone pressures, and general notes snippet produced by that tool supersede the generic values in this section and shall be coordinated with the drawing criteria.`;
+    }
+
+    // NEW: M. SEISMIC – with localStorage override
+    function buildSectionM(ctx) {
+      var override = null;
+      try {
+        if (typeof window !== "undefined" && window.localStorage) {
+          override = window.localStorage.getItem("ts_ep_seismic_notes");
+        }
+      } catch (e) {}
+
+      if (override && override.trim()) {
+        return override;
+      }
+
+      var code = ctx.asceEdition || "ASCE 7-[YEAR]";
+
+      return `M. SEISMIC DESIGN CRITERIA
+
+Seismic loads are determined in accordance with ${code} and the adopted building code. Seismic design data, including mapped spectral accelerations SS and S1, Site Class, design spectral accelerations SDS and SD1, Seismic Design Category (SDC), and seismic importance factor Ie, are indicated on the structural drawings and/or in the code summary.
+
+The basic seismic-force-resisting system(s), response modification factor R, deflection amplification factor Cd, and overstrength factor Ω0 for each principal direction are selected from ASCE 7 Chapter 12 tables based on the actual material and detailing used (e.g., special steel moment frames, ordinary concentric braced frames, special reinforced shear walls, wood shear walls, etc.).
+
+Design base shear V and seismic story forces are determined using the prescribed analysis procedure (e.g., Equivalent Lateral Force procedure, Modal Response Spectrum analysis) with appropriate period determination, vertical distribution, redundancy factor ρ, accidental torsion, and combination of orthogonal effects where required.
+
+Where the Seismic Helper tool is used, the detailed seismic design parameters and general notes snippet produced by that tool supersede the generic language in this section and shall be coordinated with the drawing criteria.`;
+    }
+
     function buildNotesOutput() {
       var ctx = {
         projName: str("projName"),
@@ -683,35 +743,20 @@ Prior to coring, cutting, or removing portions of existing structural members or
         riskCat: str("riskCat")
       };
 
-      var blocks = [];
+      var lines = [];
 
-      // Optional project header
-      var headerLines = [];
       if (ctx.projName) {
-        headerLines.push(ctx.projName.toUpperCase());
+        lines.push(ctx.projName.toUpperCase());
       }
       if (ctx.projNumber) {
-        headerLines.push("Project No.: " + ctx.projNumber);
+        lines.push("Project No.: " + ctx.projNumber);
       }
-      if (headerLines.length > 0) {
-        blocks.push(headerLines.join("\n"));
+      if (ctx.projName || ctx.projNumber) {
+        lines.push("");
       }
 
-      // Opening paragraph summarizing design basis
-      var code = ctx.codeYear || "[ADOPTED BUILDING CODE]";
-      var asce = ctx.asceEdition || "ASCE 7-[YEAR]";
-      var risk = ctx.riskCat || "[I/II/III/IV]";
+      var blocks = [];
 
-      var intro = [
-        "STRUCTURAL GENERAL NOTES",
-        "",
-        `The structure shown on these drawings has been designed in general accordance with ${code} and ${asce}, for a building assigned to Risk Category ${risk}.`,
-        "These notes establish minimum requirements for materials, construction, quality assurance, and coordination, and shall be read together with all other Contract Documents."
-      ].join("\n");
-
-      blocks.push(intro);
-
-      // Append selected sections
       if (document.getElementById("secA").checked) blocks.push(buildSectionA());
       if (document.getElementById("secB").checked) blocks.push(buildSectionB(ctx));
       if (document.getElementById("secC").checked) blocks.push(buildSectionC());
@@ -723,14 +768,22 @@ Prior to coring, cutting, or removing portions of existing structural members or
       if (document.getElementById("secI").checked) blocks.push(buildSectionI());
       if (document.getElementById("secJ").checked) blocks.push(buildSectionJ());
       if (document.getElementById("secK").checked) blocks.push(buildSectionK());
+      if (document.getElementById("secL").checked) blocks.push(buildSectionL(ctx));
+      if (document.getElementById("secM").checked) blocks.push(buildSectionM(ctx));
 
-      return blocks.join("\n\n");
+      if (blocks.length === 0) {
+        lines.push("[No sections selected. Turn on at least one section above.]");
+      } else {
+        lines.push(blocks.join("\n\n"));
+      }
+
+      return lines.join("\n");
     }
 
-    // ---- EVENT WIRING ----
     document.getElementById("btnBuildNotes").addEventListener("click", function () {
       var text = buildNotesOutput();
       document.getElementById("notesOutput").value = text;
+
       var status = document.getElementById("copyStatus");
       status.textContent = "";
       status.className = "copy-status";
@@ -741,23 +794,14 @@ Prior to coring, cutting, or removing portions of existing structural members or
     });
 
     document.getElementById("btnSelectAll").addEventListener("click", function () {
-      var ids = ["secA","secB","secC","secD","secE","secF","secG","secH","secI","secJ","secK"];
-      ids.forEach(function (id) {
-        var el = document.getElementById(id);
-        if (el) el.checked = true;
-      });
+      var checkboxes = document.querySelectorAll(".section-pill input[type='checkbox']");
+      checkboxes.forEach(function (cb) { cb.checked = true; });
     });
 
     document.getElementById("btnClearAll").addEventListener("click", function () {
-      var ids = ["secA","secB","secC","secD","secE","secF","secG","secH","secI","secJ","secK"];
-      ids.forEach(function (id) {
-        var el = document.getElementById(id);
-        if (el) el.checked = false;
-      });
+      var checkboxes = document.querySelectorAll(".section-pill input[type='checkbox']");
+      checkboxes.forEach(function (cb) { cb.checked = false; });
     });
-
-    // Optional: prepopulate once on load so you see something
-    // document.getElementById("notesOutput").value = buildNotesOutput();
   </script>
 </body>
 </html>
